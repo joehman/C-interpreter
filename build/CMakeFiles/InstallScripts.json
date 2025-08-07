@@ -1,0 +1,8 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/jonte/Documents/dev/C-interpreter/build/cmake_install.cmake",
+		"/home/jonte/Documents/dev/C-interpreter/build/src/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

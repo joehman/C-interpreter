@@ -1,0 +1,7 @@
+# ninja log v6
+5	41	1754547190198299804	src/CMakeFiles/interpreter.dir/main.c.o	8cd43cf29608b387
+41	75	1754547190235843097	/home/jonte/Documents/dev/C-interpreter/bin/interpreter	6399e294d569c3d4
+3	69	1754547311726682900	src/CMakeFiles/interpreter.dir/main.c.o	7758c0d7e44382cb
+69	96	1754547311792683218	/home/jonte/Documents/dev/C-interpreter/bin/interpreter	f9cef70a055b902a
+3	67	1754547396237165341	src/CMakeFiles/interpreter.dir/main.c.o	7758c0d7e44382cb
+67	95	1754547396301165756	/home/jonte/Documents/dev/C-interpreter/bin/interpreter	f9cef70a055b902a
