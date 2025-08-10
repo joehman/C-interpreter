@@ -23,6 +23,7 @@ struct ASTNode {
     size_t childCount;
 };
 
+
 //@returns the root node of the AST.
 struct ASTNode* mtASTParseTokens(struct Token* tokens, size_t tokenCount);
 
@@ -42,7 +43,37 @@ void mtASTFree(struct ASTNode* node);
 
 // ________________ Implementation ________________
 
+/*
+*
+*
+*
+*/
+
+
 #ifdef mtImplementation
+
+struct ParserState {
+    struct Token* tokens;
+    size_t currentToken;
+    size_t tokenCount;
+
+};
+
+struct Token mtParserGetToken(struct ParserState* state)
+{
+    state->tokens[state->currentToken];
+}
+struct Token mtParserAdvance(struct ParserState* state)
+{
+    state->tokens[state->currentToken++];
+}
+
+bool mtParserMatch(struct ParserState* state, enum TokenType type);
+
+
+struct ASTNode* parseTerm();
+struct ASTNode* parseExpression();
+struct ASTNode* parseFactor();
 
 struct ASTNode* mtASTParseTokens(struct Token* tokens, size_t tokenCount)
 {
@@ -132,15 +163,13 @@ struct ASTNode* mtASTCreateNode()
 
 void mtASTFree(struct ASTNode* node)
 {
+    if (node == NULL) return;
+
     // have to free the struct but also the rootNode->children array.
     for (size_t i = 0; i < node->childCount; i++)
     {
-        //if it's not a leaf node
-        if (node->childCount != 0)
-        {
-            //call recursively
-            mtASTFree(node->children[i]);
-        }
+        //call recursively
+        mtASTFree(node->children[i]);
     }
     free(node->children);
     free(node);

@@ -156,23 +156,28 @@ void mtGetTokenCountFromString(char* str, size_t *count, char* separators, size_
 {
     size_t tokenCount = 0;
     int i = 0;
-
-    if (mtAnyOfN(&str[0], 1, separators, separatorCount))
-    {
-        tokenCount++;
-    }
     
-    for (i = 0; i < strlen(str)+1; i++)
+    while ( i < strlen(str))
     {
-        // check the character after this one
-        if (mtAnyOfN(&str[i+1], 1, separators, separatorCount))
+        // the current character is a separator
+        if (mtAnyOfN(&str[i], 1, separators, separatorCount))
         {
             tokenCount++;
+            i++;
+        } else {
+            //start of a new token
+            tokenCount++;
+            
+            //advance until the end of the token
+            while (i < strlen(str) && !mtAnyOfN(&str[i], 1, separators, separatorCount))
+                i++;
+
         }
     }
 
-    // not really sure why, but doing this makes sure we include the '\0' as a token.
-    tokenCount += 3;
+    //add the null-terminator
+    tokenCount++;
+
     *count = tokenCount;
 }
 
@@ -208,7 +213,7 @@ void mtFindAllTokens(char* str, struct Token* tokens, size_t maxTokens, char* se
 {
 
     char* ptr = str;
-    int remainingLength = strlen(str);
+    int remainingLength = strlen(str)+1;
 
     for (size_t i = 0; i < maxTokens; i++) 
     {
