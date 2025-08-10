@@ -1,5 +1,0 @@
-/home/jonte/Documents/dev/C-interpreter/build/CMakeFiles/edit_cache.dir
-/home/jonte/Documents/dev/C-interpreter/build/CMakeFiles/rebuild_cache.dir
-/home/jonte/Documents/dev/C-interpreter/build/src/CMakeFiles/interpreter.dir
-/home/jonte/Documents/dev/C-interpreter/build/src/CMakeFiles/edit_cache.dir
-/home/jonte/Documents/dev/C-interpreter/build/src/CMakeFiles/rebuild_cache.dir
