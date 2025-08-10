@@ -1,3 +1,6 @@
 .vscode
 bin/*
 build/*
+CMakeFiles
+.cmake
+Makefile
