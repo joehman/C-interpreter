@@ -23,6 +23,7 @@ enum TokenType {
     
     TokenType_Ignore,           // all tokens with this type are ignored by the interpreter. 
     TokenType_NullTerminator,   // exists so that the interpreter knows when there's no more code left.
+    TokenType_None,   
     TokenType_NumberLiteral,    // any number literal, ex. 5
 
     TokenType_OperatorAssign,        
@@ -30,7 +31,9 @@ enum TokenType {
     TokenType_OperatorSubtraction,   
     TokenType_OperatorDivision,      
     TokenType_OperatorMultiplication,
-    TokenType_None                 
+    
+    TokenType_LeftParentheses,
+    TokenType_RightParentheses
 };
 
 struct Token {
@@ -55,6 +58,8 @@ struct TokenTypeRules
     const char divisionChar;
     const char multiplicationChar;
 
+    const char leftParentheses;
+    const char rightParentheses;
 
     const char numbers[10];
 
@@ -148,6 +153,8 @@ void mtSetTokenType(struct Token* token, struct TokenTypeRules rules);
 //@param rules the rules to apply when deciding the individual tokens' types.
 void mtSetTokenTypes(struct Token* tokens, size_t tokenCount, struct TokenTypeRules rules);
 
+//@brief Writes the token's string to str including a null terminator, up to stringSize
+void mtGetTokenString(struct Token token, char* str, size_t stringSize);
 // ___________________ IMPLEMENTATION ___________________
 
 #ifdef mtImplementation
@@ -380,6 +387,16 @@ void mtSetTokenType(struct Token* token, struct TokenTypeRules rules)
             return;
         }
 
+        if (token->string[0] == rules.leftParentheses)
+        {
+            token->type = TokenType_LeftParentheses;
+            return;
+        } else if (token->string[0] == rules.rightParentheses)
+        {
+            token->type = TokenType_RightParentheses;
+            return;
+        }
+
         //check for the operators.
         char operators[] = {
             rules.additionChar, 
@@ -419,6 +436,23 @@ void mtSetTokenTypes(struct Token* tokens, size_t tokenCount, struct TokenTypeRu
     {
         mtSetTokenType(&tokens[i], rules);
     }
+}
+
+void mtGetTokenString(struct Token token, char* str, size_t stringSize)
+{
+    if (stringSize > token.size)
+        stringSize = token.size;
+    
+    memcpy(str, token.string, stringSize);
+    str[stringSize] = '\0';
+
+    for (size_t i = 0; i < strlen(str); i++)
+    {
+        if (str[i] == '\n')
+            str[i] = '\n';
+    }
+    
+
 }
 
 #endif //mtImplementation

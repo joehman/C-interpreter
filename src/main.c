@@ -16,14 +16,12 @@
 */
 
 #define mtImplementation
-
 #include "mtUtilities.h"
 #include "mtTokenization.h"
 #include "mtParser.h"
+#include "mtInterpreter.h"
 
-#define mtMaxFileSize 1024
-#define mtMaxTokenCount 1024
-
+#define mtVersion "0.1"
 
 const struct TokenTypeRules rules = {
     .additionChar           = '+',
@@ -31,6 +29,9 @@ const struct TokenTypeRules rules = {
     .multiplicationChar     = '*',
     .subtractionChar        = '-',
     
+    .leftParentheses        = '(',
+    .rightParentheses       = ')',
+
     .endOfFileChar          = '\0',
     .endStatementChar       = '\n',
     .separatorChar          = ' ',
@@ -46,6 +47,9 @@ void mtInterpret(char* string)
         rules.divisionChar,
         rules.multiplicationChar,
         rules.subtractionChar,
+
+        rules.leftParentheses,
+        rules.rightParentheses,
 
         rules.endOfFileChar,
         rules.endStatementChar,
@@ -72,23 +76,32 @@ void mtInterpret(char* string)
     //set all token types, operators, numbers, identifiers etc.
     mtSetTokenTypes(&tokens[0], tokenCount, rules);
     
+
     // run the parser, which creates an abstract syntax tree.
     struct ASTNode* rootNode = mtASTParseTokens(tokens, tokenCount);
     
-
+    if (rootNode != NULL)
+        mtInterpreterEvaluate(rootNode);
 
     //at the very end!
-    mtASTFree(rootNode);
+    if (rootNode != NULL) 
+        mtASTFree(rootNode);
     free(tokens);
 }
 
-#define mtVersion "0.1"
+#define mtTooManyArgs -1
+int mtCheckArgs(int argc, char* argv[])
+{
+    if (argc > 2)
+        return mtTooManyArgs;
+    
+    return mtSuccess;
+}
+
 
 int main(int argc, char* argv[])
 {
-
     printf("Mint version: " mtVersion "\n");
-
     //command-line like environment
     if (argc == 1)
     {
@@ -102,6 +115,11 @@ int main(int argc, char* argv[])
         }
         return 0;
     }
+
+
+
+
+
 
     // load the file
     size_t fileSize; 

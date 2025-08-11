@@ -9,6 +9,11 @@
 #include <stdbool.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdlib.h>
+#include <assert.h>
+#include <errno.h>
+#include <limits.h>
+
 
 // ___________ MACROS ____________
 
@@ -26,9 +31,15 @@
     #define mtWin32
 #endif
 
+#define mtStringToIntInconvertible  -1
+#define mtStringToIntOverflow       -2
+#define mtStringToIntUnderflow      -3
+
 #define mtArraySize(arr) (sizeof(arr)) / sizeof((arr)[0])
 
-#define mtMaxHashKeyLength 8
+
+
+
 // _____________ DECLARATION __________________
 
 //@brief Opens the file on path with fileptr.
@@ -107,12 +118,52 @@ bool mtOnlyOf(char* string, char* set, size_t setSize);
 //@returns The index of the first char in set which is equal to character.
 int mtWhichOf(char character, char* set, size_t setSize);
 
-
+//@brief Converts str into an integer and writes it to out
+//
+//@param out the variable to write the integer into
+//
+//@param str the string to convert. 
+//  Can't convert:
+//      - empty or NULL string
+//      - leading space
+//      - trailing characters     
+//      - non-nullterminated string
+//@param base the Base to interpret the string in, eg Base2, Base10 etc. From 2 to 36.
+int mtStringToInt(int* out, char* str, int base);
 
 // _________________ IMPLEMENTATION _______________
 
 
 #ifdef mtImplementation
+
+int mtStringToInt(int* out, char* str, int base)
+{
+
+    //check for leading spaces
+    if (str[0] == '\0' || isspace(str[0]) || str == NULL)
+    {
+        return mtStringToIntInconvertible;
+    }
+
+    char* end = NULL;
+    long l = strtol(str, &end, base);
+
+    if (l > INT_MAX)
+    {
+        return mtStringToIntOverflow;
+    }
+    if (l < INT_MIN)
+    {
+        return mtStringToIntUnderflow;
+    }
+    if (*end != '\0')
+    {
+        return mtStringToIntInconvertible;
+    }
+
+    *out = l;
+    return mtSuccess;
+}
 
 int mtOpenFile(char* path, FILE** fileptr)
 {
