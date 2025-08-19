@@ -154,6 +154,9 @@ void mtSetTokenType(struct Token* token, struct TokenTypeRules rules);
 void mtSetTokenTypes(struct Token* tokens, size_t tokenCount, struct TokenTypeRules rules);
 
 //@brief Writes the token's string to str including a null terminator, up to stringSize
+//
+//@param token the token
+//@param str a string with the capacity of token.size+1
 void mtGetTokenString(struct Token token, char* str, size_t stringSize);
 // ___________________ IMPLEMENTATION ___________________
 
@@ -440,6 +443,12 @@ void mtSetTokenTypes(struct Token* tokens, size_t tokenCount, struct TokenTypeRu
 
 void mtGetTokenString(struct Token token, char* str, size_t stringSize)
 {
+    if (token.size == 0)
+    {
+        str = NULL;
+        return;
+    }
+
     if (stringSize > token.size)
         stringSize = token.size;
     
@@ -451,8 +460,6 @@ void mtGetTokenString(struct Token token, char* str, size_t stringSize)
         if (str[i] == '\n')
             str[i] = '\n';
     }
-    
-
 }
 
 #endif //mtImplementation

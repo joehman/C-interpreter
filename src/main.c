@@ -39,7 +39,7 @@ const struct TokenTypeRules rules = {
     .numbers = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'}
 };
 
-void mtInterpret(char* string)
+void mtExecute(char* string)
 {
     //populate the token array
     const char separators[] = {
@@ -75,7 +75,6 @@ void mtInterpret(char* string)
 
     //set all token types, operators, numbers, identifiers etc.
     mtSetTokenTypes(&tokens[0], tokenCount, rules);
-    
 
     // run the parser, which creates an abstract syntax tree.
     struct ASTNode* rootNode = mtASTParseTokens(tokens, tokenCount);
@@ -111,15 +110,10 @@ int main(int argc, char* argv[])
         {
             printf(">");
             fgets(&string[0], sizeof(string), stdin);
-            mtInterpret(string);
+            mtExecute(string);
         }
         return 0;
     }
-
-
-
-
-
 
     // load the file
     size_t fileSize; 
@@ -130,7 +124,7 @@ int main(int argc, char* argv[])
         return mtFail;
     }
     
-    mtInterpret(fileString);
+    mtExecute(fileString);
     
     free(fileString);
 }

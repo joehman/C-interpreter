@@ -42,7 +42,7 @@ void interpreterError(const char* fmt, ...)
 
 
 //no parentesses
-int mtInterpretFactor(struct ASTNode* node)
+int mtInterpretNumber(struct ASTNode* node)
 {
     if (node == NULL)
         return 0;
@@ -74,86 +74,33 @@ int mtInterpretFactor(struct ASTNode* node)
 
     if (err == mtStringToIntOverflow)
     {
-        interpreterError("Failed to read token '%s' as number: overflow\n", tokenString);
+        interpreterError("Failed to read token '%s' as number: integer overflow\n", tokenString);
     }
     if (err == mtStringToIntUnderflow)
     {
-        interpreterError("Failed to read token '%s' as number: undeflow\n", tokenString);
+        interpreterError("Failed to read token '%s' as number: integer undeflow\n", tokenString);
     }
     free(tokenString);
-    return 0;
-}
-int mtInterpretTerm(struct ASTNode* node)
-{
-
-    if (node == NULL)
-        return 0;
-
-    if (node->token.type == TokenType_NumberLiteral)
-        return mtInterpretFactor(node);
-
-    int left, right;
-
-    if (node->childCount >= 2)
-    {
-        left = mtInterpretFactor(node->children[0]);
-        right = mtInterpretFactor(node->children[1]);
-    }
-
-
-    if (node->token.type == TokenType_OperatorMultiplication)
-        return left * right;
-    
-    if (node->token.type == TokenType_OperatorDivision)
-    {
-        if (right == 0)
-            interpreterError("Dividing by zero! %d / %d\n", left, right);
-        return left / right;
-    }
-
-    //somethings gone very wrong if this happens.
-    return 0;
-}
-int mtInterpretExpression(struct ASTNode* node)
-{
-    if (node == NULL)
-        return 0;
-
-    int left = 0;
-    int right = 0;
-
-    if (node->childCount >= 2)
-    {
-        left = mtInterpretTerm(node->children[0]);
-        right = mtInterpretTerm(node->children[1]);
-
-    }
-
-    if (node->token.type == TokenType_OperatorAddition)
-        return left + right;
-    
-    if (node->token.type == TokenType_OperatorSubtraction)
-        return left - right;
-
-    //somethings gone very wrong if this happens.
     return 0;
 }
 
 int interpretBinOp(struct ASTNode* node)
 {
+    if (node == NULL)
+        return 0;
     if (node->token.type == TokenType_NumberLiteral)
     {
-        return mtInterpretFactor(node);
+        return mtInterpretNumber(node);
     }
-    
+
     bool hasEnoughChildren = node->childCount >= 2;
-    //improve in future
     if (!hasEnoughChildren)
         return 0;
 
     int left = interpretBinOp(node->children[0]);
     int right = interpretBinOp(node->children[1]);
 
+    //no need to break in any of these
     switch (node->token.type)
     {
     case TokenType_OperatorAddition:
@@ -166,8 +113,14 @@ int interpretBinOp(struct ASTNode* node)
         return left*right;
     
     case TokenType_OperatorDivision:
+        if (right == 0)
+            interpreterError("Can't divide by zero!\n");
+            return left;
         return left/right;
 
+    case TokenType_OperatorAssign:
+        interpreterError("Can't assign to number literals!\n");
+        return left;
     default:
         break;
     }

@@ -28,6 +28,7 @@ struct ASTNode {
     //pointer to multiple pointers
     struct ASTNode** children;
     size_t childCount;
+    size_t childCapacity;
 };
 
 struct mtParserState {
@@ -67,6 +68,8 @@ struct ASTNode* parseTerm(struct mtParserState* state);
 
 #ifdef mtImplementation
 
+#define mtASTInitialChildCapacity 2
+
 // ___________ Helper functions ______________
 
 //@brief print errors to stderr, uses printf formats
@@ -82,7 +85,7 @@ void unexpectedTokenError(struct Token token)
     const char* newlineLiteral = "\\n";
     const char* endOfFileLiteral = "\\0";
 
-    char* str = malloc(token.size * sizeof(char));
+    char* str = malloc((token.size+1) * sizeof(char));
     mtGetTokenString(token, str, token.size);
 
     if (token.string[0] == '\n')
@@ -100,6 +103,12 @@ void unexpectedTokenError(struct Token token)
 
 struct ASTNode* mtASTAddNode(struct ASTNode* parent)
 {
+    if (parent->childCount >= parent->childCapacity)
+    {
+        parent->childCapacity *= 2;
+        parent->children = realloc(parent->children, sizeof(struct ASTNode*) * parent->childCapacity);
+    }
+
     int index = parent->childCount;
     struct ASTNode* ptr = ( parent->children[index] = mtASTCreateNode() );
     parent->childCount++;
@@ -109,6 +118,11 @@ struct ASTNode* mtASTAddNode(struct ASTNode* parent)
 
 int mtASTAddChildNode(struct ASTNode* parent, struct ASTNode* child)
 {
+    if (parent->childCount >= parent->childCapacity)
+    {
+        parent->childCapacity *= 2;
+        parent->children = realloc(parent->children, sizeof(struct ASTNode*) * parent->childCapacity);
+    }
     int index = parent->childCount;
     
     parent->children[index] = child;
@@ -116,14 +130,15 @@ int mtASTAddChildNode(struct ASTNode* parent, struct ASTNode* child)
 
     return index;
 }   
-
 struct ASTNode* mtASTCreateNode()
 {
 
     struct ASTNode* out = malloc( sizeof(struct ASTNode) );
 
     out->childCount = 0;
-    out->children = malloc (sizeof(struct ASTNode**));
+    out->childCapacity = mtASTInitialChildCapacity;
+
+    out->children = malloc (sizeof(struct ASTNode*) * mtASTInitialChildCapacity);
     mtCreateToken(&out->token);
 
     return out;
@@ -132,10 +147,11 @@ struct ASTNode* mtASTTokenCreateNode(struct Token token)
 {
 
     struct ASTNode* out = malloc( sizeof(struct ASTNode) );
-
-    out->childCount = 0;
-    out->children = malloc (sizeof(struct ASTNode**));
     
+    out->childCount = 0;
+    out->childCapacity = mtASTInitialChildCapacity;
+    
+    out->children = malloc (sizeof(struct ASTNode*) * mtASTInitialChildCapacity);
     out->token = token;
 
     return out;
@@ -201,10 +217,12 @@ struct ASTNode* parseFactor(struct mtParserState* state)
         if (node == NULL)
         {
             struct Token lastToken = mtParserGetLastToken(state);
-            char* str = malloc(sizeof(char) * lastToken.size);
+            char* str = malloc(sizeof(char) * (lastToken.size+1) );
 
             mtGetTokenString(lastToken, str, lastToken.size);
             parserError("Expected expression after token '%s'\n");
+            
+            free(str);
 
             return NULL;
         }
@@ -212,10 +230,11 @@ struct ASTNode* parseFactor(struct mtParserState* state)
         {
             struct Token lastToken = mtParserGetLastToken(state);
 
-            char* str = malloc(sizeof(char) * lastToken.size);
+            char* str = malloc(sizeof(char) * (lastToken.size+1));
             mtGetTokenString(lastToken, str, token.size);
 
             parserError("Expected rightparentheses after token '%s'\n", str);
+            free(str);
         }
         // remove the right-parenteses.
         mtParserAdvance(state);
@@ -225,9 +244,10 @@ struct ASTNode* parseFactor(struct mtParserState* state)
 
     if (mtParserCheck(state, TokenType_None))
     {
-        char* str = malloc(sizeof(char) * token.size);
+        char* str = malloc(sizeof(char) * (token.size+1));
         mtGetTokenString(token, str, token.size);
         unexpectedTokenError(token);
+        free(str);
     }
 
     
