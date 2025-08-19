@@ -4,9 +4,6 @@
 * the interpreter that "this part is separate from that part".
 */
 
-
-
-
 #ifndef mtTokenization_h
 #define mtTokenization_h
 
@@ -18,13 +15,13 @@
 
 enum TokenType {
 
-    // the bit-shifting is done so that a type can be 
-    // set to multiple types at once via an OR operator, eg. variable1 |= TokenType_whatever
-    
     TokenType_Ignore,           // all tokens with this type are ignored by the interpreter. 
     TokenType_NullTerminator,   // exists so that the interpreter knows when there's no more code left.
-    TokenType_None,   
-    TokenType_NumberLiteral,    // any number literal, ex. 5
+    TokenType_EndOfStatement,
+    TokenType_None,             // everything it doesn't recognise as a token.
+    
+    TokenType_IntegerLiteral,    // any number literal, ex. 5
+    TokenType_DecimalLiteral,    // any number with a decimal, ex. 3.4
 
     TokenType_OperatorAssign,        
     TokenType_OperatorAddition,      
@@ -62,7 +59,7 @@ struct TokenTypeRules
     const char rightParentheses;
 
     const char numbers[10];
-
+    const char decimalSeparator; // separates the fractions, ex: in 5.5 the . is the decimalSeparator.
     
 };
 
@@ -383,6 +380,13 @@ void mtSetTokenType(struct Token* token, struct TokenTypeRules rules)
     bool isSingleCharacter = token->size == 1;
     if (isSingleCharacter)
     {
+        bool isEndOfStatement = token->string[0] == rules.endStatementChar;
+        if (isEndOfStatement)
+        {
+            token->type = TokenType_EndOfStatement;
+            return;
+        }
+        //end of file
         bool isEndofFile = token->string[0] == rules.endOfFileChar;
         if (isEndofFile) 
         {
@@ -390,6 +394,7 @@ void mtSetTokenType(struct Token* token, struct TokenTypeRules rules)
             return;
         }
 
+        //parentheses
         if (token->string[0] == rules.leftParentheses)
         {
             token->type = TokenType_LeftParentheses;
@@ -423,12 +428,28 @@ void mtSetTokenType(struct Token* token, struct TokenTypeRules rules)
         }
     }
     
-    bool isNumberLiteral = mtOnlyOfN(token->string, token->size, (char*)&rules.numbers[0], 10);
-    if (isNumberLiteral)
+    bool isIntegerLiteral = mtOnlyOfN(token->string, token->size, (char*)&rules.numbers[0], 10);
+    
+    if (isIntegerLiteral)
     {
-        token->type = TokenType_NumberLiteral;
+        token->type = TokenType_IntegerLiteral;
         return;
     }
+
+    //There has to be a better way of doing this.
+    char decimalChars[11] = {};
+    memcpy(decimalChars, rules.numbers, 10);
+    decimalChars[10] = rules.decimalSeparator;
+
+    bool isDecimal = mtAnyOfN(token->string, token->size, decimalChars, mtArraySize(decimalChars));
+
+    if (isDecimal)
+    {
+        token->type = TokenType_DecimalLiteral;
+        return;
+    }
+
+ 
     
     token->type = TokenType_None;
 }

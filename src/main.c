@@ -78,7 +78,7 @@ void mtExecute(char* string)
 
     // run the parser, which creates an abstract syntax tree.
     struct ASTNode* rootNode = mtASTParseTokens(tokens, tokenCount);
-    
+
     if (rootNode != NULL)
         mtInterpreterEvaluate(rootNode);
 

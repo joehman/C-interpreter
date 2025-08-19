@@ -35,6 +35,8 @@
 #define mtStringToIntOverflow       -2
 #define mtStringToIntUnderflow      -3
 
+#define mtStringToFloatInconvertible   -1
+
 #define mtArraySize(arr) (sizeof(arr)) / sizeof((arr)[0])
 
 
@@ -131,6 +133,16 @@ int mtWhichOf(char character, char* set, size_t setSize);
 //@param base the Base to interpret the string in, eg Base2, Base10 etc. From 2 to 36.
 int mtStringToInt(int* out, char* str, int base);
 
+//@brief Converts str into a float then writes it to out
+//
+//@param out the place to write the float to
+//
+//@param str the string to convert.
+//	Can't convert:
+//		- empty or NULL string
+//		- leading space
+//		- trailing characters
+int mtStringToFloat(float* out, char* str);
 // _________________ IMPLEMENTATION _______________
 
 
@@ -138,7 +150,6 @@ int mtStringToInt(int* out, char* str, int base);
 
 int mtStringToInt(int* out, char* str, int base)
 {
-
     //check for leading spaces
     if (str[0] == '\0' || isspace(str[0]) || str == NULL)
     {
@@ -162,6 +173,26 @@ int mtStringToInt(int* out, char* str, int base)
     }
 
     *out = l;
+    return mtSuccess;
+}
+
+int mtStringToFloat(float* out, char* str)
+{
+    //check for leading spaces
+    if (str[0] == '\0' || isspace(str[0]) || str == NULL)
+    {
+	    return mtStringToFloatInconvertible;
+    }
+    char end = str[strlen(str)];
+
+    float f = strtof(str, NULL);
+
+    if (end != '\0')
+    {
+	return mtStringToFloatInconvertible;
+    }
+
+    *out = f;
     return mtSuccess;
 }
 

@@ -23,14 +23,11 @@ int mtInterpretTerm(struct ASTNode* node);
 
 int mtInterpretExpression(struct ASTNode* node);
 
-
-
-
 // ___________ Implementation ___________
 #ifdef mtImplementation
 
 //@brief print errors to stderr, uses printf formats
-void interpreterError(const char* fmt, ...)
+static void interpreterError(const char* fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
@@ -38,11 +35,39 @@ void interpreterError(const char* fmt, ...)
     vfprintf(stderr, fmt, args);
 }
 
+float mtInterpretDecimal(struct ASTNode* node)
+{
+	if (node == NULL)
+		return 0;
+	float f;
 
+	size_t tokenSize = node->token.size;
 
+	//node->token.string isn't null terminated.
+	char* str = malloc(tokenSize * sizeof(char) +1);
+	memcpy(str, node->token.string, tokenSize);
+	str[tokenSize] = '\0';
 
-//no parentesses
-int mtInterpretNumber(struct ASTNode* node)
+	int err = mtStringToFloat(&f, str);	
+	free(str);
+
+	if (err == mtSuccess)
+	{
+		return f;
+	}
+
+    	char* tokenString = malloc(tokenSize * sizeof(char) + 1);
+    	mtGetTokenString(node->token, tokenString, tokenSize);
+
+	if (err == mtStringToFloatInconvertible)
+	{
+		interpreterError("Failed to read token: '%s' as decimal: Inconvertible", tokenString);
+	}
+
+	free(tokenString);
+	return 0;
+}
+int mtInterpretInteger(struct ASTNode* node)
 {
     if (node == NULL)
         return 0;
@@ -71,7 +96,6 @@ int mtInterpretNumber(struct ASTNode* node)
     {
         interpreterError("Failed to read token '%s' as number: inconvertible\n", tokenString);
     }
-
     if (err == mtStringToIntOverflow)
     {
         interpreterError("Failed to read token '%s' as number: integer overflow\n", tokenString);
@@ -84,13 +108,17 @@ int mtInterpretNumber(struct ASTNode* node)
     return 0;
 }
 
-int interpretBinOp(struct ASTNode* node)
+struct Result interpretBinOp(struct ASTNode* node)
 {
     if (node == NULL)
         return 0;
-    if (node->token.type == TokenType_NumberLiteral)
+
+    if (node->token.type == TokenType_IntegerLiteral)
     {
-        return mtInterpretNumber(node);
+        return mtInterpretInteger(node);
+    } else if (node->token.type == TokenType_DecimalLiteral)
+    {
+    	return mtInterpretDecimal(node);
     }
 
     bool hasEnoughChildren = node->childCount >= 2;

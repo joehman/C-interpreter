@@ -60,6 +60,7 @@ void mtASTFree(struct ASTNode* node);
 
 //@brief print errors to stderr, uses printf formats
 void parserError(const char* fmt, ...);
+
 struct ASTNode* parseExpression(struct mtParserState* state);
 struct ASTNode* parseFactor(struct mtParserState* state);
 struct ASTNode* parseTerm(struct mtParserState* state);
@@ -72,13 +73,16 @@ struct ASTNode* parseTerm(struct mtParserState* state);
 
 // ___________ Helper functions ______________
 
-//@brief print errors to stderr, uses printf formats
+//@brief prints errors to stderr, uses printf formats
 void parserError(const char* fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
     fprintf(stderr, "Error while parsing: \n\t");
     vfprintf(stderr, fmt, args);
+
+    if (fmt[strlen(fmt)-1] != '\n')
+        printf("\n");
 }
 void unexpectedTokenError(struct Token token)
 {
@@ -90,14 +94,14 @@ void unexpectedTokenError(struct Token token)
 
     if (token.string[0] == '\n')
     {
-        parserError("Unexpected token: '%s'\n", newlineLiteral);
+        parserError("Unexpected token: '%s'", newlineLiteral);
         return;
     }
     if (token.string[0] == '\0')
     {
-        parserError("Unexpected token: '%s'\n", endOfFileLiteral);
+        parserError("Unexpected token: '%s'", endOfFileLiteral);
     }
-    parserError("Unexpected token: '%s'\n", str);
+    parserError("Unexpected token: '%s'", str);
 }
 
 
@@ -203,7 +207,7 @@ struct ASTNode* parseFactor(struct mtParserState* state)
 {
     struct Token token = mtParserGetToken(state);
 
-    if (mtParserCheck(state, TokenType_NumberLiteral))
+    if (mtParserCheck(state, TokenType_IntegerLiteral) || mtParserCheck(state, TokenType_DecimalLiteral))
     {
         mtParserAdvance(state);
         return mtASTTokenCreateNode(token);
@@ -220,7 +224,7 @@ struct ASTNode* parseFactor(struct mtParserState* state)
             char* str = malloc(sizeof(char) * (lastToken.size+1) );
 
             mtGetTokenString(lastToken, str, lastToken.size);
-            parserError("Expected expression after token '%s'\n");
+            parserError("Expected expression after token '%s'");
             
             free(str);
 
@@ -233,7 +237,7 @@ struct ASTNode* parseFactor(struct mtParserState* state)
             char* str = malloc(sizeof(char) * (lastToken.size+1));
             mtGetTokenString(lastToken, str, token.size);
 
-            parserError("Expected rightparentheses after token '%s'\n", str);
+            parserError("Expected rightparentheses after token '%s'", str);
             free(str);
         }
         // remove the right-parenteses.
