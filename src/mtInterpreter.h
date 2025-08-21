@@ -22,7 +22,7 @@ int mtInterpretFactor(struct ASTNode* node);
 int mtInterpretTerm(struct ASTNode* node);
 
 int mtInterpretExpression(struct ASTNode* node);
-
+#define mtImplementation
 // ___________ Implementation ___________
 #ifdef mtImplementation
 
@@ -37,7 +37,7 @@ struct Result {
 struct Result resultAdd(struct Result r1, struct Result r2)
 {
 	struct Result out;
-
+    
 	if (r1.isFloat || r2.isFloat)
 	{
 		out.isFloat = true;
@@ -60,7 +60,6 @@ struct Result resultAdd(struct Result r1, struct Result r2)
 		out.isInteger = true;
 		out.integer = r1.integer + r2.integer;
 	}
-
 	return out;
 }	
 
@@ -92,8 +91,8 @@ struct Result resultSubtract(struct Result r1, struct Result r2)
 			out.isInteger = true;
 			out.integer = r1.integer-r2.integer;
 		}else {
-			out.IsInteger = false;
-			out.IsFloat = true;
+			out.isInteger = false;
+			out.isFloat = true;
 			out.floating = (float)r1.integer - (float)r2.integer;
 		}
 	}
@@ -148,21 +147,21 @@ struct Result resultDivide(struct Result r1, struct Result r2)
 		}
 		if (r2.isFloat)
 		{
-			out.floating -= r2.floating;	
+			out.floating /= r2.floating;	
 		} else if (r2.isInteger)
 		{
-			out.floating -= (float)r2.integer;	
+			out.floating /= (float)r2.integer;	
 		}
 	} else if (r1.isInteger && r2.isInteger)
 	{
 		if ((float)r1.integer / (float)r2.integer - r1.integer / r2.integer == 0)
 		{
 			out.isInteger = true;
-			out.integer = r1.integer-r2.integer;
+			out.integer = r1.integer/r2.integer;
 		}else {
-			out.IsInteger = false;
-			out.IsFloat = true;
-			out.floating = (float)r1.integer - (float)r2.integer;
+			out.isInteger = false;
+			out.isFloat = true;
+			out.floating = (float)r1.integer / (float)r2.integer;
 		}
 	}
 
@@ -254,30 +253,32 @@ int mtInterpretInteger(struct ASTNode* node)
 struct Result interpretBinOp(struct ASTNode* node)
 {
 	struct Result out;
-	out->integer = 0;
-	out->floating = 0;	
+	out.integer = 0;
+	out.floating = 0;	
 
 	if (node == NULL)
-        	return 0;
+        return out;
 
     if (node->token.type == TokenType_IntegerLiteral)
     {
-	result.isInteger = true;
-        result.integer = mtInterpretInteger(node);
-	return result;
+	    out.isInteger = true;
+        out.isFloat = false;
+        out.integer = mtInterpretInteger(node);
+	    return out;
     } else if (node->token.type == TokenType_DecimalLiteral)
     {
-    	result.isFloat = true;
-	result.floating = mtInterpretDecimal(node);
-	return result;
+    	out.isFloat = true;
+        out.isInteger = false;
+	    out.floating = mtInterpretDecimal(node);
+	    return out;
     }
 
     bool hasEnoughChildren = node->childCount >= 2;
     if (!hasEnoughChildren)
     {
-   	result.isInteger = false;
-       	result.isFloat = false;
-	return result;	
+   	    out.isInteger = false;
+       	out.isFloat = false;
+	    return out;	
     }
 
     struct Result left = interpretBinOp(node->children[0]);
@@ -287,37 +288,39 @@ struct Result interpretBinOp(struct ASTNode* node)
     switch (node->token.type)
     {
     case TokenType_OperatorAddition:
-	if (left.isFloat || right.isFloat)
-	{
-		out.isFloat = true;
-		out.floating = 
-	}
+		out = resultAdd(left, right);
+        break;
     case TokenType_OperatorSubtraction:
-        return left-right;
-    
+        out = resultSubtract(left, right);
+        break;
     case TokenType_OperatorMultiplication:
-        return left*right;
-    
+        out = resultMultiply(left, right); 
+        break;
     case TokenType_OperatorDivision:
-        if (right == 0)
-            interpreterError("Can't divide by zero!\n");
-            return left;
-        return left/right;
-
+        out = resultDivide(left, right);
+        break;
     case TokenType_OperatorAssign:
         interpreterError("Can't assign to number literals!\n");
-        return left;
+        break;
     default:
         break;
     }
 
 
-    return 0;
+    return out;
 }
 
 void mtInterpreterEvaluate(struct ASTNode* node)
 {
-	printf("%.1f\n", interpretBinOp(node));	
+    struct Result out = interpretBinOp(node);
+    if (out.isFloat)
+    {
+        printf("%g", out.floating);
+    } else if (out.isInteger)
+    {
+        printf("%d", out.integer);
+    }
+    printf("\n");
 }
 
 
