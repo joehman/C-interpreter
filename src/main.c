@@ -8,9 +8,6 @@
 * functions are called like this: func(args, moreargs)
 * strings start and end with ". 
 * 
-* types will be: 
-* int16, int32, int64
-* 
 * Order for variable declaration will look like this:
 * Type, Identifier (optional)= 
 */
@@ -21,14 +18,15 @@
 #include "mtParser.h"
 #include "mtInterpreter.h"
 
-#define mtVersion "0.1"
+#define mtVersion "0.2"
 
 const struct TokenTypeRules rules = {
     .additionChar           = '+',
     .divisionChar           = '/',
     .multiplicationChar     = '*',
     .subtractionChar        = '-',
-    
+    .powChar                = '^',
+
     .leftParentheses        = '(',
     .rightParentheses       = ')',
 

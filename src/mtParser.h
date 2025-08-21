@@ -103,8 +103,6 @@ void unexpectedTokenError(struct Token token)
     }
     parserError("Unexpected token: '%s'", str);
 }
-
-
 struct ASTNode* mtASTAddNode(struct ASTNode* parent)
 {
     if (parent->childCount >= parent->childCapacity)
@@ -203,6 +201,12 @@ bool mtParserCheck(struct mtParserState* state, enum TokenType type)
 
 // ____________________ Actual Parser ____________________
 
+/*
+*   expression  = {add | sub} term {add | sub} term .
+*   term        = factor {mul | div} factor | factor {pow} exponent  
+*   factor      = number | "lparen" expression "rparen" (parentheses are not in the AST)
+*/
+
 struct ASTNode* parseFactor(struct mtParserState* state)
 {
     struct Token token = mtParserGetToken(state);
@@ -263,8 +267,12 @@ struct ASTNode* parseTerm(struct mtParserState* state)
     
     if (left == NULL)
         return NULL;
+    
+    bool isRightOperator =  mtParserCheck(state, TokenType_OperatorMultiplication)  || 
+                            mtParserCheck(state, TokenType_OperatorDivision)        ||
+                            mtParserCheck(state, TokenType_OperatorPower)           ;
 
-    while (mtParserCheck(state, TokenType_OperatorMultiplication) || mtParserCheck(state, TokenType_OperatorDivision))
+    while (isRightOperator)
     {
         struct Token operator = mtParserGetToken(state);
         mtParserAdvance(state); // remove operator

@@ -158,7 +158,7 @@ struct Result resultDivide(struct Result r1, struct Result r2)
 		{
 			out.isInteger = true;
 			out.integer = r1.integer/r2.integer;
-		}else {
+		} else {
 			out.isInteger = false;
 			out.isFloat = true;
 			out.floating = (float)r1.integer / (float)r2.integer;
@@ -166,6 +166,11 @@ struct Result resultDivide(struct Result r1, struct Result r2)
 	}
 
 	return out;
+}
+
+struct Result resultPower(struct Result base, struct Result exponent)
+{
+        
 }
 
 //@brief print errors to stderr, uses printf formats
@@ -298,6 +303,9 @@ struct Result interpretBinOp(struct ASTNode* node)
         break;
     case TokenType_OperatorDivision:
         out = resultDivide(left, right);
+        break;
+    case TokenType_OperatorPower:
+        out = resultPower(left, right);
         break;
     case TokenType_OperatorAssign:
         interpreterError("Can't assign to number literals!\n");

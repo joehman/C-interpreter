@@ -14,7 +14,6 @@
 
 
 enum TokenType {
-
     TokenType_Ignore,           // all tokens with this type are ignored by the interpreter. 
     TokenType_NullTerminator,   // exists so that the interpreter knows when there's no more code left.
     TokenType_EndOfStatement,
@@ -28,6 +27,7 @@ enum TokenType {
     TokenType_OperatorSubtraction,   
     TokenType_OperatorDivision,      
     TokenType_OperatorMultiplication,
+    TokenType_OperatorPower,
     
     TokenType_LeftParentheses,
     TokenType_RightParentheses
@@ -54,13 +54,13 @@ struct TokenTypeRules
     const char subtractionChar;
     const char divisionChar;
     const char multiplicationChar;
+    const char powChar; // power, eg pow()
 
     const char leftParentheses;
     const char rightParentheses;
 
     const char numbers[10];
     const char decimalSeparator; // separates the fractions, ex: in 5.5 the . is the decimalSeparator.
-    
 };
 
 
@@ -157,6 +157,7 @@ void mtSetTokenTypes(struct Token* tokens, size_t tokenCount, struct TokenTypeRu
 void mtGetTokenString(struct Token token, char* str, size_t stringSize);
 // ___________________ IMPLEMENTATION ___________________
 
+#define mtImplementation
 #ifdef mtImplementation
 
 void mtGetTokenCountFromString(char* str, size_t *count, char* separators, size_t separatorCount)
@@ -411,14 +412,16 @@ void mtSetTokenType(struct Token* token, struct TokenTypeRules rules)
             rules.subtractionChar, 
             rules.multiplicationChar, 
             rules.divisionChar, 
-            rules.assignChar
+            rules.assignChar,
+            rules.powChar
         };
         enum TokenType operatorTypes[] = { // same order as above
             TokenType_OperatorAddition,
             TokenType_OperatorSubtraction,
             TokenType_OperatorMultiplication,
             TokenType_OperatorDivision,
-            TokenType_OperatorAssign
+            TokenType_OperatorAssign,
+            TokenType_OperatorPower
         };
         int operatorIndex = mtWhichOf(token->string[0], &operators[0], mtArraySize(operators));
         if (operatorIndex != mtFail)
