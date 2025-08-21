@@ -170,7 +170,13 @@ struct Result resultDivide(struct Result r1, struct Result r2)
 
 struct Result resultPower(struct Result base, struct Result exponent)
 {
-        
+    struct Result result;
+    memset(&result, 0, sizeof(struct Result));
+
+    bool isFloat = base.isFloat || exponent.isFloat;
+    bool isInteger = base.isInteger && exponent.isFloat;
+
+    return result;
 }
 
 //@brief print errors to stderr, uses printf formats

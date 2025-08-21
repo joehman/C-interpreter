@@ -157,7 +157,6 @@ void mtSetTokenTypes(struct Token* tokens, size_t tokenCount, struct TokenTypeRu
 void mtGetTokenString(struct Token token, char* str, size_t stringSize);
 // ___________________ IMPLEMENTATION ___________________
 
-#define mtImplementation
 #ifdef mtImplementation
 
 void mtGetTokenCountFromString(char* str, size_t *count, char* separators, size_t separatorCount)
