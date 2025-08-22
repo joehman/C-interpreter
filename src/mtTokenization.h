@@ -110,6 +110,16 @@ void mtFilterTokens(struct Token* unFilteredTokens, size_t unFilteredTokenCount,
 // @param token a token created with mtCreateToken()
 void mtPrintTokenString(struct Token token);
 
+//@brief Prints the type of a token as a number.
+//
+//@param token a token created with mtCreateToken()
+void mtPrintTokenType(struct Token token);
+
+//@brief Prints all the types of tokens as numbers.
+//
+//@param tokens An array of tokens created with mtCreateTokens()
+void mtPrintTokenTypes(struct Token* tokens, size_t tokenCount);
+
 //@brief Prints the string of all tokens in an array
 //
 //@param tokens an array of tokens created with mtCreateTokens()
@@ -156,14 +166,13 @@ void mtSetTokenTypes(struct Token* tokens, size_t tokenCount, struct TokenTypeRu
 //@param str a string with the capacity of token.size+1
 void mtGetTokenString(struct Token token, char* str, size_t stringSize);
 // ___________________ IMPLEMENTATION ___________________
-
+#define mtImplementation
 #ifdef mtImplementation
 
 void mtGetTokenCountFromString(char* str, size_t *count, char* separators, size_t separatorCount)
 {
     size_t tokenCount = 0;
     int i = 0;
-    
     while ( i < strlen(str))
     {
         // the current character is a separator
@@ -174,23 +183,18 @@ void mtGetTokenCountFromString(char* str, size_t *count, char* separators, size_
         } else {
             //start of a new token
             tokenCount++;
-            
             //advance until the end of the token
             while (i < strlen(str) && !mtAnyOfN(&str[i], 1, separators, separatorCount))
                 i++;
-
         }
     }
-
     //add the null-terminator
     tokenCount++;
-
     *count = tokenCount;
 }
 
 void mtFindToken(struct Token* token, char* position, size_t searchLength, char* separators, size_t separatorCount)
 {
-        
     token->string = position;
 
     if (mtAnyOfN(&position[0], 1, separators, separatorCount))
@@ -211,7 +215,6 @@ void mtFindToken(struct Token* token, char* position, size_t searchLength, char*
             return;
         }
     }
-
     return;
 }
 
@@ -357,6 +360,19 @@ void mtPrintTokenString(struct Token token)
     printf("'");
 }
 
+void mtPrintTokenType(struct Token token)
+{
+     printf("%d, ", token.type);
+}
+
+void mtPrintTokenTypes(struct Token* tokens, size_t tokenCount)
+{
+    for (size_t i = 0; i < tokenCount; i++)
+    {
+        mtPrintTokenType(tokens[i]);
+    }
+    printf("\n");
+}
 
 struct Token mtCreateStringToken(const char* string)
 {

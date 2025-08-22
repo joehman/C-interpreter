@@ -211,7 +211,11 @@ struct ASTNode* parseFactor(struct mtParserState* state)
 {
     struct Token token = mtParserGetToken(state);
 
-    if (mtParserCheck(state, TokenType_IntegerLiteral) || mtParserCheck(state, TokenType_DecimalLiteral))
+    bool isOperator =   mtParserCheck(state, TokenType_IntegerLiteral) || 
+                        mtParserCheck(state, TokenType_DecimalLiteral) ||
+                        mtParserCheck(state, TokenType_OperatorPower)   ;
+
+    if (isOperator)
     {
         mtParserAdvance(state);
         return mtASTTokenCreateNode(token);
@@ -333,9 +337,6 @@ struct ASTNode* mtASTParseTokens(struct Token* tokens, size_t tokenCount)
     return rootNode;
 }
 
-
-
 #endif
-
 
 #endif

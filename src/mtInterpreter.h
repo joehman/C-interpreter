@@ -6,6 +6,7 @@
 */
 
 #include "mtParser.h"
+#include <math.h>
 
 // ___________ Declarations ______________
 
@@ -173,8 +174,45 @@ struct Result resultPower(struct Result base, struct Result exponent)
     struct Result result;
     memset(&result, 0, sizeof(struct Result));
 
+    
     bool isFloat = base.isFloat || exponent.isFloat;
     bool isInteger = base.isInteger && exponent.isFloat;
+    printf("isFloat:%d", isFloat);  
+    printf("isInteger:%d", isInteger);  
+    if (isFloat)
+    {
+        result.isFloat = true;
+
+        if (base.isInteger)
+        {
+            if (exponent.isFloat)
+            {
+                result.floating = powf(base.integer, exponent.floating); 
+            }
+            if (exponent.isInteger)
+            {
+                result.floating = powf(base.integer, exponent.integer);
+            }
+        }
+
+        if (base.isFloat)
+        {
+            if (exponent.isFloat)
+            {
+                result.floating = powf(base.floating, exponent.floating);
+            }
+            if (exponent.isInteger)
+            {
+                result.floating = powf(base.floating, exponent.integer);
+            }
+        }
+    }
+    
+    if (isInteger)
+    {
+        result.integer = (int)powl(base.integer, exponent.integer);
+    }
+    
 
     return result;
 }
@@ -327,6 +365,10 @@ struct Result interpretBinOp(struct ASTNode* node)
 void mtInterpreterEvaluate(struct ASTNode* node)
 {
     struct Result out = interpretBinOp(node);
+    
+    if (out != NULL)
+        return;
+
     if (out.isFloat)
     {
         printf("%g", out.floating);

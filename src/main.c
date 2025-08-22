@@ -45,6 +45,7 @@ void mtExecute(char* string)
         rules.divisionChar,
         rules.multiplicationChar,
         rules.subtractionChar,
+        rules.powChar,
 
         rules.leftParentheses,
         rules.rightParentheses,
