@@ -173,7 +173,6 @@ struct Result resultPower(struct Result base, struct Result exponent)
 {
     struct Result result;
     memset(&result, 0, sizeof(struct Result));
-
     
     bool isFloat = base.isFloat || exponent.isFloat;
     bool isInteger = base.isInteger && exponent.isFloat;
@@ -212,7 +211,6 @@ struct Result resultPower(struct Result base, struct Result exponent)
     {
         result.integer = (int)powl(base.integer, exponent.integer);
     }
-    
 
     return result;
 }
@@ -366,9 +364,6 @@ void mtInterpreterEvaluate(struct ASTNode* node)
 {
     struct Result out = interpretBinOp(node);
     
-    if (out != NULL)
-        return;
-
     if (out.isFloat)
     {
         printf("%g", out.floating);
