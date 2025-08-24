@@ -273,7 +273,7 @@ struct ASTNode* parseTerm(struct mtParserState* state)
                             mtParserCheck(state, TokenType_OperatorDivision)        ||
                             mtParserCheck(state, TokenType_OperatorPower)           ;
 
-    while (isRightOperator)
+    if (isRightOperator)
     {
         struct Token operator = mtParserGetToken(state);
         mtParserAdvance(state); // remove operator
