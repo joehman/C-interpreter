@@ -211,7 +211,6 @@ struct ASTNode* parseFactor(struct mtParserState* state)
 {
     struct Token token = mtParserGetToken(state);
 
-
     if (mtParserCheck(state, TokenType_DecimalLiteral) || mtParserCheck(state, TokenType_IntegerLiteral))
     {
         mtParserAdvance(state);
@@ -250,7 +249,6 @@ struct ASTNode* parseFactor(struct mtParserState* state)
         return node;
     }
 
-
     if (mtParserCheck(state, TokenType_None))
     {
         char* str = malloc(sizeof(char) * (token.size+1));
@@ -258,10 +256,9 @@ struct ASTNode* parseFactor(struct mtParserState* state)
         unexpectedTokenError(token);
         free(str);
     }
-
-    
     return NULL;
 }
+
 struct ASTNode* parseTerm(struct mtParserState* state)
 {
     struct ASTNode* left = parseFactor(state);
@@ -273,7 +270,7 @@ struct ASTNode* parseTerm(struct mtParserState* state)
                             mtParserCheck(state, TokenType_OperatorDivision)        ||
                             mtParserCheck(state, TokenType_OperatorPower)           ;
 
-    while (isRightOperator)
+    if (isRightOperator)
     {
         struct Token operator = mtParserGetToken(state);
         mtParserAdvance(state); // remove operator

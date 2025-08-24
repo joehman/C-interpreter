@@ -114,6 +114,7 @@ int main(int argc, char* argv[])
         return 0;
     }
 
+    //fix this eventually
     // load the file
     size_t fileSize; 
     mtGetFileCharLength("test.txt", &fileSize);

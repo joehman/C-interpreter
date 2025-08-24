@@ -23,38 +23,52 @@ int mtInterpretFactor(struct ASTNode* node);
 int mtInterpretTerm(struct ASTNode* node);
 
 int mtInterpretExpression(struct ASTNode* node);
-#define mtImplementation
 // ___________ Implementation ___________
 #ifdef mtImplementation
 
 struct Result {
 	int integer;
-	float floating;	
+	double decimal;	
 	
 	bool isInteger;
-	bool isFloat; 	
+	bool isDecimal; 	
 };
+
+//@brief print errors to stderr, uses printf formats
+static void interpreterError(const char* fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+    fprintf(stderr, "Error while interpreting: \n\t");
+    vfprintf(stderr, fmt, args);
+
+    if (fmt[strlen(fmt)] != '\n')
+    {
+        printf("\n");
+    }
+}
+
 
 struct Result resultAdd(struct Result r1, struct Result r2)
 {
 	struct Result out;
     
-	if (r1.isFloat || r2.isFloat)
+	if (r1.isDecimal || r2.decimal)
 	{
-		out.isFloat = true;
-		if (r1.isFloat)
+		out.isDecimal = true;
+		if (r1.isDecimal)
 		{
-			out.floating = r1.floating;
+			out.decimal = r1.decimal;
 		} else if (r1.isInteger) 
 		{
-			out.floating = (float)r1.integer;
+			out.decimal = (double)r1.integer;
 		}
-		if (r2.isFloat)
+		if (r2.isDecimal)
 		{
-			out.floating += r2.floating;	
+			out.decimal += r2.decimal;	
 		} else if (r2.isInteger)
 		{
-			out.floating += (float)r2.integer;	
+			out.decimal += (double)r2.integer;	
 		}
 	} else if (r1.isInteger && r2.isInteger)
 	{
@@ -68,22 +82,22 @@ struct Result resultSubtract(struct Result r1, struct Result r2)
 {
 	struct Result out;
 
-	if (r1.isFloat || r2.isFloat)
+	if (r1.isDecimal || r2.decimal)
 	{
-		out.isFloat = true;
-		if (r1.isFloat)
+		out.isDecimal = true;
+		if (r1.isDecimal)
 		{
-			out.floating = r1.floating;
+			out.decimal = r1.decimal;
 		} else if (r1.isInteger) 
 		{
-			out.floating = (float)r1.integer;
+			out.decimal = (double)r1.integer;
 		}
-		if (r2.isFloat)
+		if (r2.isDecimal)
 		{
-			out.floating -= r2.floating;	
+			out.decimal -= r2.decimal;	
 		} else if (r2.isInteger)
 		{
-			out.floating -= (float)r2.integer;	
+			out.decimal -= (float)r2.integer;	
 		}
 	} else if (r1.isInteger && r2.isInteger)
 	{
@@ -93,8 +107,8 @@ struct Result resultSubtract(struct Result r1, struct Result r2)
 			out.integer = r1.integer-r2.integer;
 		}else {
 			out.isInteger = false;
-			out.isFloat = true;
-			out.floating = (float)r1.integer - (float)r2.integer;
+			out.isDecimal = true;
+			out.decimal = (float)r1.integer - (float)r2.integer;
 		}
 	}
 
@@ -106,22 +120,22 @@ struct Result resultMultiply(struct Result r1, struct Result r2)
 {
 	struct Result out;
 
-	if (r1.isFloat || r2.isFloat)
+	if (r1.isDecimal || r2.decimal)
 	{
-		out.isFloat = true;
-		if (r1.isFloat)
+		out.isDecimal = true;
+		if (r1.isDecimal)
 		{
-			out.floating = r1.floating;
+			out.decimal = r1.decimal;
 		} else if (r1.isInteger) 
 		{
-			out.floating = (float)r1.integer;
+			out.decimal = (float)r1.integer;
 		}
-		if (r2.isFloat)
+		if (r2.isDecimal)
 		{
-			out.floating *= r2.floating;	
+			out.decimal *= r2.decimal;	
 		} else if (r2.isInteger)
 		{
-			out.floating *= (float)r2.integer;	
+			out.decimal *= (float)r2.integer;	
 		}
 	} else if (r1.isInteger && r2.isInteger)
 	{
@@ -136,33 +150,39 @@ struct Result resultDivide(struct Result r1, struct Result r2)
 {
 	struct Result out;
 
-	if (r1.isFloat || r2.isFloat)
+    if (r2.integer == 0 || r2.decimal == 0)
+    {
+        interpreterError("Can't divide by zero!");
+        return r1;
+    }
+
+	if (r1.isDecimal || r2.decimal)
 	{
-		out.isFloat = true;
-		if (r1.isFloat)
+		out.isDecimal = true;
+		if (r1.isDecimal)
 		{
-			out.floating = r1.floating;
+			out.decimal = r1.decimal;
 		} else if (r1.isInteger) 
 		{
-			out.floating = (float)r1.integer;
+			out.decimal = (double)r1.integer;
 		}
-		if (r2.isFloat)
+		if (r2.isDecimal)
 		{
-			out.floating /= r2.floating;	
+			out.decimal /= r2.decimal;	
 		} else if (r2.isInteger)
 		{
-			out.floating /= (float)r2.integer;	
+			out.decimal /= (double)r2.integer;	
 		}
 	} else if (r1.isInteger && r2.isInteger)
 	{
-		if ((float)r1.integer / (float)r2.integer - r1.integer / r2.integer == 0)
+		if ((double)r1.integer / (double)r2.integer - r1.integer / r2.integer == 0)
 		{
 			out.isInteger = true;
 			out.integer = r1.integer/r2.integer;
 		} else {
 			out.isInteger = false;
-			out.isFloat = true;
-			out.floating = (float)r1.integer / (float)r2.integer;
+			out.isDecimal = true;
+			out.decimal = (double)r1.integer / (double)r2.integer;
 		}
 	}
 
@@ -174,55 +194,47 @@ struct Result resultPower(struct Result base, struct Result exponent)
     struct Result result;
     memset(&result, 0, sizeof(struct Result));
     
-    bool isFloat = base.isFloat || exponent.isFloat;
-    bool isInteger = base.isInteger && exponent.isFloat;
-    printf("isFloat:%d", isFloat);  
-    printf("isInteger:%d", isInteger);  
-    if (isFloat)
+    bool isDecimal = base.decimal || exponent.decimal;
+    bool isInteger = base.isInteger && exponent.isInteger;
+
+    if (isDecimal)
     {
-        result.isFloat = true;
+        result.isDecimal = true;
 
         if (base.isInteger)
         {
-            if (exponent.isFloat)
+            if (exponent.isDecimal)
             {
-                result.floating = powf(base.integer, exponent.floating); 
+                result.decimal = pow(base.integer, exponent.decimal); 
             }
             if (exponent.isInteger)
             {
-                result.floating = powf(base.integer, exponent.integer);
+                result.decimal = pow(base.integer, exponent.integer);
             }
         }
 
-        if (base.isFloat)
+        if (base.isDecimal)
         {
-            if (exponent.isFloat)
+            if (exponent.isDecimal)
             {
-                result.floating = powf(base.floating, exponent.floating);
+                result.decimal = pow(base.decimal, exponent.decimal);
             }
             if (exponent.isInteger)
             {
-                result.floating = powf(base.floating, exponent.integer);
+                result.decimal = pow(base.decimal, exponent.integer);
             }
         }
     }
     
     if (isInteger)
     {
+        result.isInteger = true;
         result.integer = (int)powl(base.integer, exponent.integer);
     }
 
     return result;
 }
 
-//@brief print errors to stderr, uses printf formats
-static void interpreterError(const char* fmt, ...)
-{
-    va_list args;
-    va_start(args, fmt);
-    fprintf(stderr, "Error while interpreting: \n\t");
-    vfprintf(stderr, fmt, args);
-}
 
 float mtInterpretDecimal(struct ASTNode* node)
 {
@@ -301,7 +313,7 @@ struct Result interpretBinOp(struct ASTNode* node)
 {
 	struct Result out;
 	out.integer = 0;
-	out.floating = 0;	
+	out.decimal = 0;	
 
 	if (node == NULL)
         return out;
@@ -309,14 +321,14 @@ struct Result interpretBinOp(struct ASTNode* node)
     if (node->token.type == TokenType_IntegerLiteral)
     {
 	    out.isInteger = true;
-        out.isFloat = false;
+        out.isDecimal = false;
         out.integer = mtInterpretInteger(node);
 	    return out;
     } else if (node->token.type == TokenType_DecimalLiteral)
     {
-    	out.isFloat = true;
+    	out.isDecimal = true;
         out.isInteger = false;
-	    out.floating = mtInterpretDecimal(node);
+	    out.decimal = mtInterpretDecimal(node);
 	    return out;
     }
 
@@ -324,7 +336,7 @@ struct Result interpretBinOp(struct ASTNode* node)
     if (!hasEnoughChildren)
     {
    	    out.isInteger = false;
-       	out.isFloat = false;
+       	out.isDecimal = false;
 	    return out;	
     }
 
@@ -364,9 +376,9 @@ void mtInterpreterEvaluate(struct ASTNode* node)
 {
     struct Result out = interpretBinOp(node);
     
-    if (out.isFloat)
+    if (out.isDecimal)
     {
-        printf("%g", out.floating);
+        printf("%f", out.decimal);
     } else if (out.isInteger)
     {
         printf("%d", out.integer);
