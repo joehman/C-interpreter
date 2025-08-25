@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10.0)
-project(interpreter VERSION 0.1.0 LANGUAGES C)
+project(Mint VERSION 0.1.0 LANGUAGES C)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/bin)
 

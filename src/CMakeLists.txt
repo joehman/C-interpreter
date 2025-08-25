@@ -2,4 +2,4 @@
 file(GLOB_RECURSE SRCS "*.c")
 
 link_libraries("m")
-add_executable(interpreter ${SRCS})
+add_executable(${PROJECT_NAME} ${SRCS})
