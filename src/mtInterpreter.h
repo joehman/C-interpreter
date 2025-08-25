@@ -35,6 +35,43 @@ struct Result {
 	bool isFloat; 	
 };
 
+
+//@brief print errors to stderr, uses printf formats
+static void interpreterError(const char* fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+    fprintf(stderr, "Error while interpreting: \n\t");
+    vfprintf(stderr, fmt, args);
+
+    if (fmt[strlen(fmt)] != '\n')
+    {
+        printf("\n");
+    }
+}
+
+bool resultEquals(struct Result r1, struct Result r2)
+{
+    if (r1.isFloat && r2.isFloat)
+    {
+        return r1.floating == r2.floating;
+    }
+    if (r1.isInteger && r2.isInteger)
+    {
+        return r1.integer == r2.integer;
+    }
+    if (r1.isInteger && r2.isFloat)
+    {
+        return r1.integer == r2.floating;
+    }
+    if (r1.isFloat && r2.isInteger)
+    {
+        return r2.floating == r2.integer;
+    }
+
+    return false;
+}
+
 struct Result resultAdd(struct Result r1, struct Result r2)
 {
 	struct Result out;
@@ -136,6 +173,19 @@ struct Result resultDivide(struct Result r1, struct Result r2)
 {
 	struct Result out;
 
+    struct Result zero = {
+        .isInteger = true,
+        .integer = 0,
+
+        .isFloat = false
+    };
+
+    if (resultEquals(r2, zero))
+    {
+        interpreterError("Can't divide by zero!");
+        return r1;
+    }
+
 	if (r1.isFloat || r2.isFloat)
 	{
 		out.isFloat = true;
@@ -176,6 +226,7 @@ struct Result resultPower(struct Result base, struct Result exponent)
     
     bool isFloat = base.isFloat || exponent.isFloat;
     bool isInteger = base.isInteger && exponent.isInteger;
+   
     if (isFloat)
     {
         result.isFloat = true;
@@ -209,19 +260,18 @@ struct Result resultPower(struct Result base, struct Result exponent)
     {
         result.isInteger = true;
         result.integer = (int)powl(base.integer, exponent.integer);
+        if (powl(base.integer, exponent.integer) > INT_MAX)
+        {
+            interpreterError("Integer overflow!");
+        } else if (powl(base.integer, exponent.integer) < INT_MIN)
+        {
+            interpreterError("Integer undeflow!");
+        }
     }
 
     return result;
 }
 
-//@brief print errors to stderr, uses printf formats
-static void interpreterError(const char* fmt, ...)
-{
-    va_list args;
-    va_start(args, fmt);
-    fprintf(stderr, "Error while interpreting: \n\t");
-    vfprintf(stderr, fmt, args);
-}
 
 float mtInterpretDecimal(struct ASTNode* node)
 {
