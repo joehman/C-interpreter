@@ -59,6 +59,7 @@ void mtExecute(char* string)
         rules.separatorChar
     };
 
+
     //get the number of tokens from fileString
     size_t tokenCount = 0; 
     mtGetTokenCountFromString(string, &tokenCount, (char*) &separators[0], mtArraySize(separators));
@@ -86,9 +87,9 @@ void mtExecute(char* string)
         mtInterpreterEvaluate(rootNode);
 
     //at the very end!
-    if (rootNode != NULL) 
-        mtASTFree(rootNode);
-    free(tokens);
+    //if (rootNode != NULL) 
+        //mtASTFree(rootNode);
+    //free(tokens);
 }
 
 #define mtTooManyArgs -1
@@ -105,7 +106,7 @@ int main(int argc, char* argv[])
 {
     printf("Mint version: " mtVersion "\n");
     //command-line like environment
-    if (argc == 1)
+    if (true) // change this in the future
     {
         char string[256];
 
@@ -113,6 +114,12 @@ int main(int argc, char* argv[])
         {
             printf(">");
             fgets(&string[0], sizeof(string), stdin);
+
+            if (strcmp(string, "exit\n") == 0)
+            {
+                return 0;
+            }
+
             mtExecute(string);
         }
         return 0;

@@ -473,8 +473,6 @@ void mtSetTokenType(struct Token* token, struct TokenTypeRules rules)
         return;
     }
 
- 
-    
     token->type = TokenType_None;
 }
 

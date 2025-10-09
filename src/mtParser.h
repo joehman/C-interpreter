@@ -322,7 +322,7 @@ struct ASTNode* parseExpression(struct mtParserState* state)
 
     bool isOperator =   mtParserCheck(state, TokenType_OperatorAddition)    || 
                         mtParserCheck(state, TokenType_OperatorSubtraction) ;
-    while (isOperator)
+    if (isOperator)
     {
         struct Token operator = mtParserGetToken(state);
         mtParserAdvance(state); // remove operator
