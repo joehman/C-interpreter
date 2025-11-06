@@ -34,7 +34,11 @@ const struct TokenTypeRules rules = {
     .endStatementChar       = '\n',
     .separatorChar          = ' ',
 
-    .numbers = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'}
+    .numbers = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'},
+
+    .intKeyword = "int", 
+    .floatKeyword = "float",
+    .doubleKeyword = "double"
 };
 
 void mtExecute(char* string)
@@ -54,6 +58,7 @@ void mtExecute(char* string)
         rules.endStatementChar,
         rules.separatorChar
     };
+
 
     //get the number of tokens from fileString
     size_t tokenCount = 0; 
@@ -82,9 +87,9 @@ void mtExecute(char* string)
         mtInterpreterEvaluate(rootNode);
 
     //at the very end!
-    if (rootNode != NULL) 
-        mtASTFree(rootNode);
-    free(tokens);
+    //if (rootNode != NULL) 
+        //mtASTFree(rootNode);
+    //free(tokens);
 }
 
 #define mtTooManyArgs -1
@@ -101,7 +106,7 @@ int main(int argc, char* argv[])
 {
     printf("Mint version: " mtVersion "\n");
     //command-line like environment
-    if (argc == 1)
+    if (true) // change this in the future
     {
         char string[256];
 
@@ -109,11 +114,18 @@ int main(int argc, char* argv[])
         {
             printf(">");
             fgets(&string[0], sizeof(string), stdin);
+
+            if (strcmp(string, "exit\n") == 0)
+            {
+                return 0;
+            }
+
             mtExecute(string);
         }
         return 0;
     }
 
+    //fix this eventually
     // load the file
     size_t fileSize; 
     mtGetFileCharLength("test.txt", &fileSize);

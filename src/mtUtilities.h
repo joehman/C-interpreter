@@ -14,6 +14,7 @@
 #include <errno.h>
 #include <limits.h>
 
+#include "mtDebug.h"
 
 // ___________ MACROS ____________
 
@@ -38,8 +39,6 @@
 #define mtStringToFloatInconvertible   -1
 
 #define mtArraySize(arr) (sizeof(arr)) / sizeof((arr)[0])
-
-
 
 
 // _____________ DECLARATION __________________
@@ -145,7 +144,7 @@ int mtStringToInt(int* out, char* str, int base);
 int mtStringToFloat(float* out, char* str);
 // _________________ IMPLEMENTATION _______________
 
-
+#define mtImplementation // temporary !!!!!!!
 #ifdef mtImplementation
 
 int mtStringToInt(int* out, char* str, int base)

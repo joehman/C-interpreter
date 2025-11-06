@@ -18,7 +18,10 @@ enum TokenType {
     TokenType_NullTerminator,   // exists so that the interpreter knows when there's no more code left.
     TokenType_EndOfStatement,
     TokenType_None,             // everything it doesn't recognise as a token.
-    
+
+    TokenType_Type,             // types 
+    TokenType_Identifier,       // identifier for variables (or anything else)
+
     TokenType_IntegerLiteral,    // any number literal, ex. 5
     TokenType_DecimalLiteral,    // any number with a decimal, ex. 3.4
 
@@ -43,7 +46,6 @@ struct Token {
 
 struct TokenTypeRules 
 {
-
     const char separatorChar;
     const char endOfFileChar;
     const char endStatementChar;
@@ -61,6 +63,11 @@ struct TokenTypeRules
 
     const char numbers[10];
     const char decimalSeparator; // separates the fractions, ex: in 5.5 the . is the decimalSeparator.
+    
+    const char* intKeyword;
+    const char* floatKeyword;
+    const char* doubleKeyword;
+
 };
 
 
@@ -173,7 +180,7 @@ void mtGetTokenCountFromString(char* str, size_t *count, char* separators, size_
 {
     size_t tokenCount = 0;
     int i = 0;
-    while ( i < strlen(str))
+    while (i < strlen(str))
     {
         // the current character is a separator
         if (mtAnyOfN(&str[i], 1, separators, separatorCount))
@@ -384,6 +391,7 @@ struct Token mtCreateStringToken(const char* string)
     return out;
 }
 
+//easiest things done first; hardest things done last.
 void mtSetTokenType(struct Token* token, struct TokenTypeRules rules)
 {
     bool isEmpty = (token->size == 0) || (token->string == NULL);
@@ -409,7 +417,6 @@ void mtSetTokenType(struct Token* token, struct TokenTypeRules rules)
             token->type = TokenType_NullTerminator;
             return;
         }
-
         //parentheses
         if (token->string[0] == rules.leftParentheses)
         {
@@ -420,7 +427,6 @@ void mtSetTokenType(struct Token* token, struct TokenTypeRules rules)
             token->type = TokenType_RightParentheses;
             return;
         }
-
         //check for the operators.
         char operators[] = {
             rules.additionChar, 
@@ -467,8 +473,6 @@ void mtSetTokenType(struct Token* token, struct TokenTypeRules rules)
         return;
     }
 
- 
-    
     token->type = TokenType_None;
 }
 

@@ -1,10 +1,12 @@
 #ifndef mtInterpreter_h
 #define mtInterpreter_h
 
+
 /*
-*   This is the part of the interpreter that actually interprets all the code and does stuff.
+*   This is the part of the code that actually interprets all the code and does stuff.
 */
 
+#include "mtUtilities.h" 
 #include "mtParser.h"
 #include <math.h>
 
@@ -23,18 +25,21 @@ int mtInterpretFactor(struct ASTNode* node);
 int mtInterpretTerm(struct ASTNode* node);
 
 int mtInterpretExpression(struct ASTNode* node);
-#define mtImplementation
 // ___________ Implementation ___________
 #ifdef mtImplementation
 
-struct Result {
-	int integer;
-	float floating;	
-	
-	bool isInteger;
-	bool isFloat; 	
+enum NumberType {
+	DECIMAL,
+	INTEGER
 };
 
+struct Number {
+	enum NumberType type;
+	union {
+		int integer;
+		double decimal;	
+	};
+};
 
 //@brief print errors to stderr, uses printf formats
 static void interpreterError(const char* fmt, ...)
@@ -50,226 +55,88 @@ static void interpreterError(const char* fmt, ...)
     }
 }
 
-bool resultEquals(struct Result r1, struct Result r2)
-{
-    if (r1.isFloat && r2.isFloat)
-    {
-        return r1.floating == r2.floating;
-    }
-    if (r1.isInteger && r2.isInteger)
-    {
-        return r1.integer == r2.integer;
-    }
-    if (r1.isInteger && r2.isFloat)
-    {
-        return r1.integer == r2.floating;
-    }
-    if (r1.isFloat && r2.isInteger)
-    {
-        return r2.floating == r2.integer;
-    }
 
-    return false;
-}
-
-struct Result resultAdd(struct Result r1, struct Result r2)
+struct Number numberAdd(struct Number a, struct Number b)
 {
-	struct Result out;
+	struct Number out;
     
-	if (r1.isFloat || r2.isFloat)
+	if (a.type == DECIMAL || b.type == DECIMAL)
 	{
-		out.isFloat = true;
-		if (r1.isFloat)
-		{
-			out.floating = r1.floating;
-		} else if (r1.isInteger) 
-		{
-			out.floating = (float)r1.integer;
-		}
-		if (r2.isFloat)
-		{
-			out.floating += r2.floating;	
-		} else if (r2.isInteger)
-		{
-			out.floating += (float)r2.integer;	
-		}
-	} else if (r1.isInteger && r2.isInteger)
-	{
-		out.isInteger = true;
-		out.integer = r1.integer + r2.integer;
+		out.type = DECIMAL;
+		double x = (a.type == DECIMAL) ? a.decimal : a.integer; 
+		double y = (b.type == DECIMAL) ? b.decimal : b.integer;
+		out.decimal = x+y;
+	} else {
+		out.type = INTEGER;
+		out.integer = a.integer + b.integer;
 	}
 	return out;
 }	
 
-struct Result resultSubtract(struct Result r1, struct Result r2)
+struct Number numberSubtract(struct Number a, struct Number b)
 {
-	struct Result out;
-
-	if (r1.isFloat || r2.isFloat)
-	{
-		out.isFloat = true;
-		if (r1.isFloat)
-		{
-			out.floating = r1.floating;
-		} else if (r1.isInteger) 
-		{
-			out.floating = (float)r1.integer;
-		}
-		if (r2.isFloat)
-		{
-			out.floating -= r2.floating;	
-		} else if (r2.isInteger)
-		{
-			out.floating -= (float)r2.integer;	
-		}
-	} else if (r1.isInteger && r2.isInteger)
-	{
-		if (r1.integer % r2.integer == 0)
-		{
-			out.isInteger = true;
-			out.integer = r1.integer-r2.integer;
-		}else {
-			out.isInteger = false;
-			out.isFloat = true;
-			out.floating = (float)r1.integer - (float)r2.integer;
-		}
-	}
-
-	return out;
-}
-
-
-struct Result resultMultiply(struct Result r1, struct Result r2)
-{
-	struct Result out;
-
-	if (r1.isFloat || r2.isFloat)
-	{
-		out.isFloat = true;
-		if (r1.isFloat)
-		{
-			out.floating = r1.floating;
-		} else if (r1.isInteger) 
-		{
-			out.floating = (float)r1.integer;
-		}
-		if (r2.isFloat)
-		{
-			out.floating *= r2.floating;	
-		} else if (r2.isInteger)
-		{
-			out.floating *= (float)r2.integer;	
-		}
-	} else if (r1.isInteger && r2.isInteger)
-	{
-		out.isInteger = true;
-		out.integer = r1.integer * r2.integer;
-	}
-
-	return out;
-}
-
-struct Result resultDivide(struct Result r1, struct Result r2)
-{
-	struct Result out;
-
-    struct Result zero = {
-        .isInteger = true,
-        .integer = 0,
-
-        .isFloat = false
-    };
-
-    if (resultEquals(r2, zero))
-    {
-        interpreterError("Can't divide by zero!");
-        return r1;
-    }
-
-	if (r1.isFloat || r2.isFloat)
-	{
-		out.isFloat = true;
-		if (r1.isFloat)
-		{
-			out.floating = r1.floating;
-		} else if (r1.isInteger) 
-		{
-			out.floating = (float)r1.integer;
-		}
-		if (r2.isFloat)
-		{
-			out.floating /= r2.floating;	
-		} else if (r2.isInteger)
-		{
-			out.floating /= (float)r2.integer;	
-		}
-	} else if (r1.isInteger && r2.isInteger)
-	{
-		if ((float)r1.integer / (float)r2.integer - r1.integer / r2.integer == 0)
-		{
-			out.isInteger = true;
-			out.integer = r1.integer/r2.integer;
-		} else {
-			out.isInteger = false;
-			out.isFloat = true;
-			out.floating = (float)r1.integer / (float)r2.integer;
-		}
-	}
-
-	return out;
-}
-
-struct Result resultPower(struct Result base, struct Result exponent)
-{
-    struct Result result;
-    memset(&result, 0, sizeof(struct Result));
+	struct Number out;
     
-    bool isFloat = base.isFloat || exponent.isFloat;
-    bool isInteger = base.isInteger && exponent.isInteger;
-   
-    if (isFloat)
-    {
-        result.isFloat = true;
+	if (a.type == DECIMAL || b.type == DECIMAL)
+	{
+		out.type = DECIMAL;
+		double x = (a.type == DECIMAL) ? a.decimal : a.integer; 
+		double y = (b.type == DECIMAL) ? b.decimal : b.integer;
+		out.decimal = x-y;
+	} else {
+		out.type = INTEGER;
+		out.integer = a.integer - b.integer;
+	}
+	return out;
+}
 
-        if (base.isInteger)
-        {
-            if (exponent.isFloat)
-            {
-                result.floating = powf(base.integer, exponent.floating); 
-            }
-            if (exponent.isInteger)
-            {
-                result.floating = powf(base.integer, exponent.integer);
-            }
-        }
 
-        if (base.isFloat)
-        {
-            if (exponent.isFloat)
-            {
-                result.floating = powf(base.floating, exponent.floating);
-            }
-            if (exponent.isInteger)
-            {
-                result.floating = powf(base.floating, exponent.integer);
-            }
-        }
-    }
+struct Number numberMultiply(struct Number a, struct Number b)
+{
+	struct Number out;
     
-    if (isInteger)
-    {
-        result.isInteger = true;
-        result.integer = (int)powl(base.integer, exponent.integer);
-        if (powl(base.integer, exponent.integer) > INT_MAX)
-        {
-            interpreterError("Integer overflow!");
-        } else if (powl(base.integer, exponent.integer) < INT_MIN)
-        {
-            interpreterError("Integer undeflow!");
-        }
-    }
+	if (a.type == DECIMAL || b.type == DECIMAL)
+	{
+		out.type = DECIMAL;
+		double x = (a.type == DECIMAL) ? a.decimal : a.integer; 
+		double y = (b.type == DECIMAL) ? b.decimal : b.integer;
+		out.decimal = x*y;
+	} else {
+		out.type = INTEGER;
+		out.integer = a.integer * b.integer;
+	}
+	return out;
+}
 
-    return result;
+struct Number numberDivide(struct Number a, struct Number b)
+{
+	struct Number out;
+
+	double x = (a.type == DECIMAL) ? a.decimal : a.integer;
+    double y = (b.type == DECIMAL) ? b.decimal : b.integer;
+
+	double quotient;
+	if (y != 0.0)
+	{
+		quotient = x/y;
+	} else {
+		interpreterError("Tried to divide by zero!");
+		quotient = 0;
+	}
+
+	//ints are always truncated when converting, so 1.2 becomes 1.
+	//thanks chatgpt for the fabs() check.
+	if (fabs(quotient - (int)quotient) == 0 && 
+		quotient <= INT_MAX && quotient >= INT_MIN)
+	{
+		out.type = INTEGER;
+		out.integer = (int)quotient;
+		return out;
+	}
+
+	out.type = DECIMAL;
+	out.decimal = quotient;
+	return out;
 }
 
 
@@ -294,8 +161,8 @@ float mtInterpretDecimal(struct ASTNode* node)
 		return f;
 	}
 
-    	char* tokenString = malloc(tokenSize * sizeof(char) + 1);
-    	mtGetTokenString(node->token, tokenString, tokenSize);
+    char* tokenString = malloc(tokenSize * sizeof(char) + 1);
+    mtGetTokenString(node->token, tokenString, tokenSize);
 
 	if (err == mtStringToFloatInconvertible)
 	{
@@ -346,57 +213,46 @@ int mtInterpretInteger(struct ASTNode* node)
     return 0;
 }
 
-struct Result interpretBinOp(struct ASTNode* node)
+struct Number interpretBinOp(struct ASTNode* node)
 {
-	struct Result out;
-	out.integer = 0;
-	out.floating = 0;	
+	struct Number out;
 
 	if (node == NULL)
-        return out;
+    {
+		out.type = INTEGER;
+		out.integer = 0;
+		interpreterError("NULL");
+	}
 
     if (node->token.type == TokenType_IntegerLiteral)
     {
-	    out.isInteger = true;
-        out.isFloat = false;
+		out.type = INTEGER;
         out.integer = mtInterpretInteger(node);
 	    return out;
     } else if (node->token.type == TokenType_DecimalLiteral)
     {
-    	out.isFloat = true;
-        out.isInteger = false;
-	    out.floating = mtInterpretDecimal(node);
+    	out.type = INTEGER;
+	    out.decimal = mtInterpretDecimal(node);
 	    return out;
-    }
+	}
 
-    bool hasEnoughChildren = node->childCount >= 2;
-    if (!hasEnoughChildren)
-    {
-   	    out.isInteger = false;
-       	out.isFloat = false;
-	    return out;	
-    }
-
-    struct Result left = interpretBinOp(node->children[0]);
-    struct Result right = interpretBinOp(node->children[1]);
+    struct Number left = interpretBinOp(node->children[0]);
+    struct Number right = interpretBinOp(node->children[1]);
 
     //no need to break in any of these
     switch (node->token.type)
     {
     case TokenType_OperatorAddition:
-		out = resultAdd(left, right);
+		out = numberAdd(left, right);
         break;
     case TokenType_OperatorSubtraction:
-        out = resultSubtract(left, right);
+        out = numberSubtract(left, right);
         break;
     case TokenType_OperatorMultiplication:
-        out = resultMultiply(left, right); 
+        out = numberMultiply(left, right); 
         break;
     case TokenType_OperatorDivision:
-        out = resultDivide(left, right);
-        break;
-    case TokenType_OperatorPower:
-        out = resultPower(left, right);
+        out = numberDivide(left, right);
         break;
     case TokenType_OperatorAssign:
         interpreterError("Can't assign to number literals!\n");
@@ -411,15 +267,17 @@ struct Result interpretBinOp(struct ASTNode* node)
 
 void mtInterpreterEvaluate(struct ASTNode* node)
 {
-    struct Result out = interpretBinOp(node);
+    struct Number out = interpretBinOp(node);
     
-    if (out.isFloat)
-    {
-        printf("%f", out.floating);
-    } else if (out.isInteger)
-    {
-        printf("%d", out.integer);
-    }
+	if (out.type == INTEGER)
+	{
+		printf("%d", out.integer);
+	} else if(out.type == DECIMAL)
+	{
+		printf("%f", out.decimal);
+	}
+
+
     printf("\n");
 }
 
