@@ -202,7 +202,6 @@ int mtOpenFile(char* path, FILE** fileptr)
     
     if (fileptr == NULL)
     {
-        printf("Failed to fopen file %s\n", path);
         return mtFailOpenFile;
     }
     return mtSuccess;

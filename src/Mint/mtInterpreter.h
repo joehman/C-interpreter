@@ -36,7 +36,7 @@ struct Scope {
 
 
 
-struct Variable* interpretBinOp(struct ASTNode* node, struct Scope* scope);
+struct Variable* interpretExpression(struct ASTNode* node, struct Scope* scope);
 
 
 //@brief print errors to stderr, uses printf formats
@@ -53,10 +53,14 @@ static void interpreterError(const char* fmt, ...)
     }
 }
 
-void mtCreateScope(struct Scope* scope)
+struct Scope* mtCreateScope()
 {
+    struct Scope* scope = malloc(sizeof(struct Scope));
+
     scope->parent = NULL;
-    scope->variables = hashmap_create(10);
+    scope->variables = hashmap_create(2);
+
+    return scope;
 }
 
 struct Variable* mtCreateVariable(struct Type type)
@@ -99,17 +103,18 @@ struct Variable* getVariableFromScope(struct Scope* scope, const char* key)
     return NULL;
 }
 
-void interpretAssignOp(struct ASTNode* node, struct Scope* scope)
+void interpretStatement(struct ASTNode* node, struct Scope* scope)
 {
     struct ASTNode* leftNode = node->children[0];
     struct ASTNode* rightNode = node->children[1];
 
-    struct Variable* left = interpretBinOp(leftNode, scope);
-    struct Variable* right = interpretBinOp(rightNode, scope);
+    struct Variable* left = interpretExpression(leftNode, scope);
+    struct Variable* right = interpretExpression(rightNode, scope);
 
     if (!right)
     {
         interpreterError("Cannot assign with NULL Value!");
+        return;
     }
 
     if (!left)
@@ -121,10 +126,13 @@ void interpretAssignOp(struct ASTNode* node, struct Scope* scope)
         hashmap_put(scope->variables, nodeStr, left);
 
         left->type.set(left->value, right->value);
+        return;
     }
+
+    left->type.set(left->value, right->value);
 }
 
-struct Variable* interpretBinOp(struct ASTNode* node, struct Scope* scope)
+struct Variable* interpretExpression(struct ASTNode* node, struct Scope* scope)
 {
 	if (node == NULL)
     {
@@ -167,14 +175,8 @@ struct Variable* interpretBinOp(struct ASTNode* node, struct Scope* scope)
         return out;
     }
 
-    if (node->token.type == TokenType_OperatorAssign)
-    {
-        interpretAssignOp(node, scope);
-        return NULL;
-    }
-
-    struct Variable* left = interpretBinOp(node->children[0], scope);
-    struct Variable* right = interpretBinOp(node->children[1], scope);
+    struct Variable* left = interpretExpression(node->children[0], scope);
+    struct Variable* right = interpretExpression(node->children[1], scope);
 
     if (!left)
     {
@@ -213,30 +215,41 @@ struct Variable* interpretBinOp(struct ASTNode* node, struct Scope* scope)
     return out;
 }
 
-void interpretStatement(struct ASTNode* node, struct Scope* scope)
+void interpretBlock(struct ASTNode* node)
 {
-    struct Variable* binop = interpretBinOp(node, scope); 
-
-    if (binop != NULL)
+    if (node->childCount <= 0)
     {
-        printf("%s\n", binop->type.str(binop->value));
-        free(binop);
+        return;
+    }
+
+    struct Scope* scope = mtCreateScope(); 
+
+    for (size_t i = 0; i < node->childCount; i++) 
+    {
+        struct Variable* expression = NULL;
+        
+        struct ASTNode* currentNode = node->children[i];
+        
+        if (currentNode->type == NodeType_BinaryOperator)
+        {
+            expression = interpretExpression(currentNode, scope); 
+        }
+        if (currentNode->type == NodeType_Assignment)
+        {
+            interpretStatement(currentNode, scope); 
+        }
+
+        //temporary
+        if (expression != NULL)
+        {
+            printf("%s\n", expression->type.str(expression->value));
+        }
     }
 }
 
 void mtInterpret(struct ASTNode* node)
 {
-    // remove this later lol
-    static bool initOnce = true;
-    static struct Scope globalscope;
-
-    if (initOnce)
-    {
-        mtCreateScope(&globalscope);
-        initOnce = false;
-    }
-
-    interpretStatement(node, &globalscope);
+    interpretBlock(node);
 }
 
 
