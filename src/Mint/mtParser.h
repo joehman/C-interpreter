@@ -5,9 +5,11 @@
 */
 
 /*
-*   expression  = {add | sub} term {add | sub} term .
-*   term        = factor {mul | div} factor
-*   factor      = number | "lparen" expression "rparen"
+*   block       = statments | expressions
+*   statement   = identifier {assign} expression
+*   expression  = {add | sub} term {add | sub} term 
+*   term        = factor  {mul | div} factor | factor {pow} exponent  
+*   factor      = number | identifier | "lparen" expression "rparen" 
 */
 
 
@@ -23,10 +25,8 @@
 enum NodeType {
     NodeType_None,
 
-
     NodeType_Type,
     NodeType_Assignment,
-    NodeType_Declaration,
     NodeType_BinaryOperator,
     NodeType_Number,
     NodeType_Identifier
@@ -115,6 +115,8 @@ void unexpectedTokenError(struct Token token)
         parserError("Unexpected token: '%s'", endOfFileLiteral);
     }
     parserError("Unexpected token: '%s'", str);
+
+    free(str);
 }
 struct ASTNode* mtASTAddNode(struct ASTNode* parent)
 {
@@ -210,13 +212,11 @@ bool mtParserCheck(struct mtParserState* state, enum TokenType type)
     return false;
 }
 
-
-
 // ____________________ Actual Parser ____________________
 
 /*
 *   block       = statment | expression 
-*   statement   = type identifier {assign} expression | identifier {assign} expression
+*   statement   = identifier {assign} expression
 *   expression  = {add | sub} term    {add | sub} term 
 *   term        = factor  {mul | div} factor | factor {pow} exponent  
 *   factor      = number | identifier | "lparen" expression "rparen" 
@@ -290,8 +290,7 @@ struct ASTNode* parseTerm(struct mtParserState* state)
         return NULL;
     
     bool isRightOperator =  mtParserCheck(state, TokenType_OperatorMultiplication)  || 
-                            mtParserCheck(state, TokenType_OperatorDivision)        ||
-                            mtParserCheck(state, TokenType_OperatorPower)           ;
+                            mtParserCheck(state, TokenType_OperatorDivision);
 
     if (isRightOperator)
     {
@@ -325,7 +324,7 @@ struct ASTNode* parseExpression(struct mtParserState* state)
     if (isOperator)
     {
         struct Token operator = mtParserGetToken(state);
-        mtParserAdvance(state); // remove operator
+        mtParserAdvance(state); 
         
         struct ASTNode* node = mtASTTokenCreateNode(operator);
         node->type = NodeType_BinaryOperator;
@@ -344,47 +343,7 @@ struct ASTNode* parseExpression(struct mtParserState* state)
 
 struct ASTNode* parseStatement(struct mtParserState* state)
 {
-    //check for declaration
-    if (mtParserCheck(state, TokenType_Type))
-    {
-        struct Token type = mtParserGetToken(state);
-        mtParserAdvance(state);
-        struct Token identifier = mtParserGetToken(state);
-        mtParserAdvance(state);
-
-        struct ASTNode* identifierNode = mtASTTokenCreateNode(identifier);
-        identifierNode->type = NodeType_Identifier;
-        struct ASTNode* typeNode = mtASTTokenCreateNode(type);
-        typeNode->type = NodeType_Type;
-
-        //make the type a child of the identifier
-        mtASTAddChildNode(identifierNode, typeNode);
-    
-        //no token
-        //exists mostly to tell the interpreter that we're declaring a variable.
-        struct ASTNode* declarationNode = mtASTCreateNode(); 
-        declarationNode->type = NodeType_Declaration;
-        mtASTAddChildNode(declarationNode, identifierNode);
-
-        //if we're assigning a variable and declaring
-        if (mtParserGetToken(state).type == TokenType_OperatorAssign)
-        {
-            struct Token operator = mtParserGetToken(state);
-
-            struct ASTNode* assignNode = mtASTTokenCreateNode(operator);
-            assignNode->type = NodeType_Assignment;
-
-            mtParserAdvance(state);
-            struct ASTNode* expression = parseExpression(state);
-            
-            mtASTAddChildNode(assignNode, expression);
-            mtASTAddChildNode(assignNode, declarationNode);
-            
-            return assignNode;
-        }
-    }
-    //check for just assignment
-    else if (mtParserCheck(state, TokenType_Identifier))
+    if (mtParserCheck(state, TokenType_Identifier))
     {
         struct Token identifier = mtParserGetToken(state);
         mtParserAdvance(state);
@@ -396,6 +355,7 @@ struct ASTNode* parseStatement(struct mtParserState* state)
             state->currentToken--;
             return parseExpression(state); 
         }
+
         mtParserAdvance(state);
         struct ASTNode* right = parseExpression(state);
 
@@ -411,10 +371,7 @@ struct ASTNode* parseStatement(struct mtParserState* state)
         return operatorNode;
     }
     
-    //didn't declare or assign, must be an expression
-    struct ASTNode* expression = parseExpression(state);
-
-    return expression;
+    return parseExpression(state);
 }
 
 

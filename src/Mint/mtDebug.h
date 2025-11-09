@@ -3,8 +3,6 @@
 
 #include <stdlib.h>
 
-
-
 #define mtDebug // temporary
 
 #define __FILENAME__ \

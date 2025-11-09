@@ -9,16 +9,16 @@
 * strings start and end with ". 
 * 
 * Order for variable declaration will look like this:
-* Type, Identifier (optional)= 
+* Identifier = expression 
 */
 
 #define mtImplementation
-#include "mtUtilities.h"
-#include "mtTokenization.h"
-#include "mtParser.h"
-#include "mtInterpreter.h"
+#include "Mint/mtUtilities.h"
+#include "Mint/mtTokenization.h"
+#include "Mint/mtParser.h"
+#include "Mint/mtInterpreter.h"
 
-#define mtVersion "0.2"
+#define mtVersion "0.3"
 
 const struct TokenTypeRules rules = {
     .additionChar           = '+',
@@ -26,6 +26,7 @@ const struct TokenTypeRules rules = {
     .multiplicationChar     = '*',
     .subtractionChar        = '-',
     .powChar                = '^',
+    .assignChar             = '=',
 
     .leftParentheses        = '(',
     .rightParentheses       = ')',
@@ -35,15 +36,10 @@ const struct TokenTypeRules rules = {
     .separatorChar          = ' ',
 
     .numbers = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'},
-
-    .intKeyword = "int", 
-    .floatKeyword = "float",
-    .doubleKeyword = "double"
 };
 
 void mtExecute(char* string)
 {
-    //populate the token array
     const char separators[] = {
         rules.additionChar,
         rules.divisionChar,
@@ -84,12 +80,11 @@ void mtExecute(char* string)
     struct ASTNode* rootNode = mtASTParseTokens(tokens, tokenCount);
 
     if (rootNode != NULL)
-        mtInterpreterEvaluate(rootNode);
+        mtInterpret(rootNode);
 
-    //at the very end!
-    //if (rootNode != NULL) 
-        //mtASTFree(rootNode);
-    //free(tokens);
+    if (rootNode != NULL) 
+        mtASTFree(rootNode);
+    free(tokens);
 }
 
 #define mtTooManyArgs -1

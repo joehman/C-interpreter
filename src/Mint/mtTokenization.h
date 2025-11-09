@@ -30,7 +30,6 @@ enum TokenType {
     TokenType_OperatorSubtraction,   
     TokenType_OperatorDivision,      
     TokenType_OperatorMultiplication,
-    TokenType_OperatorPower,
     
     TokenType_LeftParentheses,
     TokenType_RightParentheses
@@ -63,11 +62,6 @@ struct TokenTypeRules
 
     const char numbers[10];
     const char decimalSeparator; // separates the fractions, ex: in 5.5 the . is the decimalSeparator.
-    
-    const char* intKeyword;
-    const char* floatKeyword;
-    const char* doubleKeyword;
-
 };
 
 
@@ -117,6 +111,12 @@ void mtFilterTokens(struct Token* unFilteredTokens, size_t unFilteredTokenCount,
 // @param token a token created with mtCreateToken()
 void mtPrintTokenString(struct Token token);
 
+//@brief Prints the string of all tokens in an array
+//
+//@param tokens an array of tokens created with mtCreateTokens()
+//@param tokenCount the number of tokens in the struct Token* tokens array.
+void mtPrintTokenStrings(struct Token* tokens, size_t tokenCount);
+
 //@brief Prints the type of a token as a number.
 //
 //@param token a token created with mtCreateToken()
@@ -126,12 +126,6 @@ void mtPrintTokenType(struct Token token);
 //
 //@param tokens An array of tokens created with mtCreateTokens()
 void mtPrintTokenTypes(struct Token* tokens, size_t tokenCount);
-
-//@brief Prints the string of all tokens in an array
-//
-//@param tokens an array of tokens created with mtCreateTokens()
-//@param tokenCount the number of tokens in the struct Token* tokens array.
-void mtPrintTokenStrings(struct Token* tokens, size_t tokenCount);
 
 //@brief Creates a token with a string literal then returns it.
 //
@@ -146,7 +140,6 @@ size_t mtGetTokenCount(struct Token* tokens, size_t tokenCount);
 
 // @brief strcmp but for tokens. 
 //
-// @details as an optmization, if the length of one token is not equal to that of the other, then it will always return -1.
 // @param t1 a token created with mtCreateToken()
 // @param t2 a token created with mtCreateToken()
 //
@@ -173,7 +166,6 @@ void mtSetTokenTypes(struct Token* tokens, size_t tokenCount, struct TokenTypeRu
 //@param str a string with the capacity of token.size+1
 void mtGetTokenString(struct Token token, char* str, size_t stringSize);
 // ___________________ IMPLEMENTATION ___________________
-#define mtImplementation
 #ifdef mtImplementation
 
 void mtGetTokenCountFromString(char* str, size_t *count, char* separators, size_t separatorCount)
@@ -404,19 +396,19 @@ void mtSetTokenType(struct Token* token, struct TokenTypeRules rules)
     bool isSingleCharacter = token->size == 1;
     if (isSingleCharacter)
     {
-        bool isEndOfStatement = token->string[0] == rules.endStatementChar;
-        if (isEndOfStatement)
+        if (token->string[0] == rules.endStatementChar)
         {
             token->type = TokenType_EndOfStatement;
             return;
         }
+
         //end of file
-        bool isEndofFile = token->string[0] == rules.endOfFileChar;
-        if (isEndofFile) 
+        if (token->string[0] == rules.endOfFileChar)
         {
             token->type = TokenType_NullTerminator;
             return;
         }
+        
         //parentheses
         if (token->string[0] == rules.leftParentheses)
         {
@@ -427,6 +419,7 @@ void mtSetTokenType(struct Token* token, struct TokenTypeRules rules)
             token->type = TokenType_RightParentheses;
             return;
         }
+        
         //check for the operators.
         char operators[] = {
             rules.additionChar, 
@@ -434,7 +427,6 @@ void mtSetTokenType(struct Token* token, struct TokenTypeRules rules)
             rules.multiplicationChar, 
             rules.divisionChar, 
             rules.assignChar,
-            rules.powChar
         };
         enum TokenType operatorTypes[] = { // same order as above
             TokenType_OperatorAddition,
@@ -442,7 +434,6 @@ void mtSetTokenType(struct Token* token, struct TokenTypeRules rules)
             TokenType_OperatorMultiplication,
             TokenType_OperatorDivision,
             TokenType_OperatorAssign,
-            TokenType_OperatorPower
         };
         int operatorIndex = mtWhichOf(token->string[0], &operators[0], mtArraySize(operators));
         if (operatorIndex != mtFail)
@@ -453,7 +444,6 @@ void mtSetTokenType(struct Token* token, struct TokenTypeRules rules)
     }
     
     bool isIntegerLiteral = mtOnlyOfN(token->string, token->size, (char*)&rules.numbers[0], 10);
-    
     if (isIntegerLiteral)
     {
         token->type = TokenType_IntegerLiteral;
@@ -461,19 +451,18 @@ void mtSetTokenType(struct Token* token, struct TokenTypeRules rules)
     }
 
     //There has to be a better way of doing this.
-    char decimalChars[11] = {};
+    char decimalChars[11] = {0};
     memcpy(decimalChars, rules.numbers, 10);
     decimalChars[10] = rules.decimalSeparator;
 
     bool isDecimal = mtAnyOfN(token->string, token->size, decimalChars, mtArraySize(decimalChars));
-
     if (isDecimal)
     {
         token->type = TokenType_DecimalLiteral;
         return;
     }
 
-    token->type = TokenType_None;
+    token->type = TokenType_Identifier;
 }
 
 void mtSetTokenTypes(struct Token* tokens, size_t tokenCount, struct TokenTypeRules rules)
