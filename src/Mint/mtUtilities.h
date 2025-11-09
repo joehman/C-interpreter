@@ -144,7 +144,6 @@ int mtStringToInt(int* out, char* str, int base);
 int mtStringToFloat(float* out, char* str);
 // _________________ IMPLEMENTATION _______________
 
-#define mtImplementation // temporary !!!!!!!
 #ifdef mtImplementation
 
 int mtStringToInt(int* out, char* str, int base)
@@ -317,6 +316,5 @@ int mtWhichOf(char character, char* set, size_t setSize)
 
 
 #endif // mtImplementation
-
 
 #endif // mtUtilities_h
