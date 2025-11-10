@@ -34,17 +34,16 @@ struct Scope {
     HashMap* variables;
 };
 
-
-
 struct Variable* interpretExpression(struct ASTNode* node, struct Scope* scope);
 
-
 //@brief print errors to stderr, uses printf formats
-static void interpreterError(const char* fmt, ...)
+static void interpreterError(struct ASTNode* node, const char* fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
-    fprintf(stderr, "Error while interpreting: \n\t");
+    fprintf(stderr, "Error while interpreting on line %d: \n\t", 
+            node->token.line 
+    );
     vfprintf(stderr, fmt, args);
 
     if (fmt[strlen(fmt)] != '\n')
@@ -113,7 +112,7 @@ void interpretStatement(struct ASTNode* node, struct Scope* scope)
 
     if (!right)
     {
-        interpreterError("Cannot assign with NULL Value!");
+        interpreterError(node, "Cannot assign with NULL Value!");
         return;
     }
 
@@ -136,7 +135,7 @@ struct Variable* interpretExpression(struct ASTNode* node, struct Scope* scope)
 {
 	if (node == NULL)
     {
-		interpreterError("Unsuccsessful Parsing! Node was NULL!");
+		interpreterError(node, "Unsuccsessful Parsing! Node was NULL!");
         return NULL;
 	}
 
@@ -180,11 +179,11 @@ struct Variable* interpretExpression(struct ASTNode* node, struct Scope* scope)
 
     if (!left)
     {
-        interpreterError("Left side of binary operator was NULL!"); 
+        interpreterError(node, "Left side of binary operator was NULL!"); 
     }
     if (!right)
     {
-        interpreterError("Right side of binary operator was NULL!"); 
+        interpreterError(node, "Right side of binary operator was NULL!"); 
     }
     if (!left || !right)
         return NULL;

@@ -25,17 +25,18 @@ const struct TokenTypeRules rules = {
     .divisionChar           = '/',
     .multiplicationChar     = '*',
     .subtractionChar        = '-',
-    .powChar                = '^',
     .assignChar             = '=',
 
     .leftParentheses        = '(',
     .rightParentheses       = ')',
+    .commaChar              = ',',
 
     .endOfFileChar          = '\0',
     .endStatementChar       = '\n',
     .separatorChar          = ' ',
 
     .numbers = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'},
+    .functionKeyword = "junc"
 };
 
 void mtExecute(char* string)
@@ -45,15 +46,17 @@ void mtExecute(char* string)
         rules.divisionChar,
         rules.multiplicationChar,
         rules.subtractionChar,
-        rules.powChar,
 
         rules.leftParentheses,
         rules.rightParentheses,
+        rules.commaChar,
 
         rules.endOfFileChar,
         rules.endStatementChar,
         rules.separatorChar
     };
+
+    //TODO : make this token creation block into one function inside mtTokenization.h
 
     //get the number of tokens from fileString
     size_t tokenCount = 0; 
@@ -85,16 +88,6 @@ void mtExecute(char* string)
         mtASTFree(rootNode);
     free(tokens);
 }
-
-#define mtTooManyArgs -1
-int mtCheckArgs(int argc, char* argv[])
-{
-    if (argc > 2)
-        return mtTooManyArgs;
-    
-    return mtSuccess;
-}
-
 
 int main(int argc, char* argv[])
 {

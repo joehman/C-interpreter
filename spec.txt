@@ -1,4 +1,4 @@
-Here's the spec for Mint.
+Here's the specfication for Mint.
 
 1: Variables and Operators
 

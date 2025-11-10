@@ -4,12 +4,19 @@
 * intepreter then runs.
 */
 
+
 /*
-*   block       = statments | expressions
-*   statement   = identifier {assign} expression
+*   block       = statments | expressions | function_def
+*   statement   = identifier {assign} expression 
 *   expression  = {add | sub} term {add | sub} term 
 *   term        = factor  {mul | div} factor | factor {pow} exponent  
-*   factor      = number | identifier | "lparen" expression "rparen" 
+*   factor      = number | identifier | "lparen" expression "rparen" | function_call
+*
+*   function_def    = "func" identifier "lparen" [params] "rparen" block
+*   function_call   = identifier "lparen" [arguments] "rparen"
+*
+*   params      =  ("comma", identifier) // () = list, comma separates the identifiers
+*   arguments   = ("comma", expression) // "comma" separates the expressios
 */
 
 

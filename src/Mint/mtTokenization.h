@@ -2,6 +2,11 @@
 * The Tokenizer, often called a lexer, turns the source code into small 'tokens'
 * which makes it easier for the interpreter to "understand" the code, it tells
 * the interpreter that "this part is separate from that part".
+*
+* For example,
+* a = 2
+* would become
+* "a", "=", "2"
 */
 
 #ifndef mtTokenization_h
@@ -19,7 +24,6 @@ enum TokenType {
     TokenType_EndOfStatement,
     TokenType_None,             // everything it doesn't recognise as a token.
 
-    TokenType_Type,             // types 
     TokenType_Identifier,       // identifier for variables (or anything else)
 
     TokenType_IntegerLiteral,    // any number literal, ex. 5
@@ -32,7 +36,10 @@ enum TokenType {
     TokenType_OperatorMultiplication,
     
     TokenType_LeftParentheses,
-    TokenType_RightParentheses
+    TokenType_RightParentheses,
+    TokenType_Comma,
+
+    TokenType_FunctionKeyword
 };
 
 struct Token {
@@ -41,6 +48,8 @@ struct Token {
     // WARNING!! not null-terminated.
     char* string;
     size_t size;
+
+    int line;
 };
 
 struct TokenTypeRules 
@@ -55,17 +64,20 @@ struct TokenTypeRules
     const char subtractionChar;
     const char divisionChar;
     const char multiplicationChar;
-    const char powChar; // power, eg pow()
+    const char commaChar;
 
     const char leftParentheses;
     const char rightParentheses;
 
     const char numbers[10];
     const char decimalSeparator; // separates the fractions, ex: in 5.5 the . is the decimalSeparator.
+    
+    const char* functionKeyword;
+
 };
 
 
-// @brief Creates an empty token, eg. with Token.string at NULL, and Token.size at 0
+// @brief Creates an empty token, with Token.string at NULL, and Token.size at 0
 //
 // @param token does not have to be declared in any way.
 void mtCreateToken(struct Token* token);
@@ -82,8 +94,8 @@ void mtCreateTokens(struct Token* tokens, size_t tokenCount);
 // @param token a token created with mtCreateToken()
 // @param position a pointer to any string
 // @param searchLength defines how far forward from char* position we should search.
-// @param separators  an array of chars which define what characters should separate tokens.
-// @param separatorCount  the number of elements in char* separators.
+// @param separators an array of chars which define what characters should separate tokens.
+// @param separatorCount the number of elements in char* separators.
 void mtFindToken(struct Token* token, char* position, size_t searchLength, char* separators, size_t separatorCount);
 
 //@brief Finds all tokens in char* str then writes them to struct Token* tokens.
@@ -220,6 +232,7 @@ void mtFindToken(struct Token* token, char* position, size_t searchLength, char*
 
 void mtFindAllTokens(char* str, struct Token* tokens, size_t maxTokens, char* separators, size_t separatorCount)
 {
+    int line = 1;
 
     char* ptr = str;
     int remainingLength = strlen(str)+1;
@@ -228,6 +241,13 @@ void mtFindAllTokens(char* str, struct Token* tokens, size_t maxTokens, char* se
     {
         mtFindToken(&tokens[i], ptr, remainingLength, separators, separatorCount);
 
+        if (tokens[i].size == 1 && *tokens[i].string == '\n')
+        {
+            line += 1; 
+        }
+
+        tokens[i].line = line;
+
         ptr += tokens[i].size;
         remainingLength -= tokens[i].size;
     }
@@ -235,9 +255,6 @@ void mtFindAllTokens(char* str, struct Token* tokens, size_t maxTokens, char* se
 
 int mtTokenCmp(struct Token t1, struct Token t2)
 {
-    if (t1.size != t2.size)
-        return -1;
-
     // either of the strings being null would be fine,
     // if we didn't manually set the end of the string
     // to \0.
@@ -251,12 +268,9 @@ int mtTokenCmp(struct Token t1, struct Token t2)
 
     char strT1[t1.size];
     char strT2[t2.size];
-
-    memcpy(strT1, t1.string, t1.size);
-    memcpy(strT2, t2.string, t2.size);
     
-    strT1[t1.size] = '\0';
-    strT2[t2.size] = '\0';
+    mtGetTokenString(t1, (char*)&strT1, t1.size);
+    mtGetTokenString(t2, (char*)&strT2, t2.size);
 
     return strcmp(&strT1[0], &strT2[0]);
 }
@@ -279,6 +293,7 @@ void mtCreateToken(struct Token* token)
     token->type = 0;
     token->size = 0;
     token->string = NULL;
+    token->line = -1;
 }
 void mtCreateTokens(struct Token* tokens, size_t tokenCount)
 {
@@ -290,7 +305,6 @@ void mtCreateTokens(struct Token* tokens, size_t tokenCount)
 
 void mtFilterTokens(struct Token* unFilteredTokens, size_t unFilteredTokenCount, const struct Token* filterTokens, size_t filterTokenCount)
 {
-    
     struct Token newTokenList[unFilteredTokenCount];
     mtCreateTokens(&newTokenList[0], unFilteredTokenCount);
     
@@ -396,25 +410,32 @@ void mtSetTokenType(struct Token* token, struct TokenTypeRules rules)
     bool isSingleCharacter = token->size == 1;
     if (isSingleCharacter)
     {
-        if (token->string[0] == rules.endStatementChar)
+        char character = token->string[0];
+
+        if (character == rules.endStatementChar)
         {
             token->type = TokenType_EndOfStatement;
             return;
         }
 
         //end of file
-        if (token->string[0] == rules.endOfFileChar)
+        if (character == rules.endOfFileChar)
         {
             token->type = TokenType_NullTerminator;
             return;
         }
-        
+      
+        if (character == rules.commaChar)
+        {
+            token->type = TokenType_Comma;
+        }
+
         //parentheses
-        if (token->string[0] == rules.leftParentheses)
+        if (character == rules.leftParentheses)
         {
             token->type = TokenType_LeftParentheses;
             return;
-        } else if (token->string[0] == rules.rightParentheses)
+        } else if (character == rules.rightParentheses)
         {
             token->type = TokenType_RightParentheses;
             return;
@@ -435,14 +456,20 @@ void mtSetTokenType(struct Token* token, struct TokenTypeRules rules)
             TokenType_OperatorDivision,
             TokenType_OperatorAssign,
         };
-        int operatorIndex = mtWhichOf(token->string[0], &operators[0], mtArraySize(operators));
+        int operatorIndex = mtWhichOf(character, &operators[0], mtArraySize(operators));
         if (operatorIndex != mtFail)
         {
             token->type = operatorTypes[operatorIndex];
             return;
         }
     }
-    
+
+    if (mtTokenCmp(*token, mtCreateStringToken(rules.functionKeyword) ))
+    {
+        token->type = TokenType_FunctionKeyword;
+        return;
+    }
+
     bool isIntegerLiteral = mtOnlyOfN(token->string, token->size, (char*)&rules.numbers[0], 10);
     if (isIntegerLiteral)
     {
@@ -461,6 +488,7 @@ void mtSetTokenType(struct Token* token, struct TokenTypeRules rules)
         token->type = TokenType_DecimalLiteral;
         return;
     }
+
 
     token->type = TokenType_Identifier;
 }
