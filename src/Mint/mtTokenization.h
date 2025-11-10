@@ -19,15 +19,14 @@
 
 
 enum TokenType {
-    TokenType_Ignore,           // all tokens with this type are ignored by the interpreter. 
-    TokenType_NullTerminator,   // exists so that the interpreter knows when there's no more code left.
+    TokenType_Ignore,
+    TokenType_NullTerminator,   
     TokenType_EndOfStatement,
-    TokenType_None,             // everything it doesn't recognise as a token.
 
-    TokenType_Identifier,       // identifier for variables (or anything else)
+    TokenType_Identifier,
 
-    TokenType_IntegerLiteral,    // any number literal, ex. 5
-    TokenType_DecimalLiteral,    // any number with a decimal, ex. 3.4
+    TokenType_IntegerLiteral,   
+    TokenType_DecimalLiteral,  
 
     TokenType_OperatorAssign,        
     TokenType_OperatorAddition,      
@@ -37,9 +36,12 @@ enum TokenType {
     
     TokenType_LeftParentheses,
     TokenType_RightParentheses,
+    TokenType_LeftBracket,
+    TokenType_RightBracket,
     TokenType_Comma,
 
-    TokenType_FunctionKeyword
+    TokenType_FunctionKeyword,
+    TokenType_EndKeyword
 };
 
 struct Token {
@@ -68,12 +70,14 @@ struct TokenTypeRules
 
     const char leftParentheses;
     const char rightParentheses;
+    const char leftBracket;
+    const char rightBracket;
 
     const char numbers[10];
     const char decimalSeparator; // separates the fractions, ex: in 5.5 the . is the decimalSeparator.
     
     const char* functionKeyword;
-
+    const char* endKeyword;
 };
 
 
@@ -397,7 +401,6 @@ struct Token mtCreateStringToken(const char* string)
     return out;
 }
 
-//easiest things done first; hardest things done last.
 void mtSetTokenType(struct Token* token, struct TokenTypeRules rules)
 {
     bool isEmpty = (token->size == 0) || (token->string == NULL);
@@ -406,7 +409,8 @@ void mtSetTokenType(struct Token* token, struct TokenTypeRules rules)
         token->type = TokenType_Ignore;
         return;
     }
-
+    
+    //surely there's some way to automate this?
     bool isSingleCharacter = token->size == 1;
     if (isSingleCharacter)
     {
@@ -418,7 +422,6 @@ void mtSetTokenType(struct Token* token, struct TokenTypeRules rules)
             return;
         }
 
-        //end of file
         if (character == rules.endOfFileChar)
         {
             token->type = TokenType_NullTerminator;
@@ -430,7 +433,16 @@ void mtSetTokenType(struct Token* token, struct TokenTypeRules rules)
             token->type = TokenType_Comma;
         }
 
-        //parentheses
+        if (character == rules.rightBracket)
+        {
+            token->type = TokenType_RightBracket;
+            return;
+        } else if (character == rules.leftBracket)
+        {
+            token->type = TokenType_LeftBracket;
+            return;
+        }
+    
         if (character == rules.leftParentheses)
         {
             token->type = TokenType_LeftParentheses;
@@ -468,6 +480,10 @@ void mtSetTokenType(struct Token* token, struct TokenTypeRules rules)
     {
         token->type = TokenType_FunctionKeyword;
         return;
+    }
+    if (mtTokenCmp(*token, mtCreateStringToken(rules.endKeyword)))
+    {
+        token->type = TokenType_EndKeyword;
     }
 
     bool isIntegerLiteral = mtOnlyOfN(token->string, token->size, (char*)&rules.numbers[0], 10);

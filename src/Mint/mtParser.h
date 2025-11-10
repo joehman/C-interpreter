@@ -12,7 +12,7 @@
 *   term        = factor  {mul | div} factor | factor {pow} exponent  
 *   factor      = number | identifier | "lparen" expression "rparen" | function_call
 *
-*   function_def    = "func" identifier "lparen" [params] "rparen" block
+*   function_def    = "func" identifier "lparen" [params] "rparen" block "end"
 *   function_call   = identifier "lparen" [arguments] "rparen"
 *
 *   params      =  ("comma", identifier) // () = list, comma separates the identifiers
@@ -25,6 +25,7 @@
 
 #include "mtUtilities.h"
 #include "mtTokenization.h"
+#include <signal.h>
 #include <stdarg.h>
 #include <stdlib.h>
 
@@ -36,7 +37,12 @@ enum NodeType {
     NodeType_BinaryOperator,
     NodeType_Number,
     NodeType_Identifier,
-    NodeType_Block
+    NodeType_Block,
+
+    NodeType_FunctionDefinition,
+    NodeType_FunctionCall,
+    NodeType_ParameterList, // not an actual list
+    NodeType_Argument
 };
 
 // abstract syntax tree
@@ -84,6 +90,9 @@ void parserError(const char* fmt, ...);
 struct ASTNode* parseExpression(struct mtParserState* state);
 struct ASTNode* parseFactor(struct mtParserState* state);
 struct ASTNode* parseTerm(struct mtParserState* state);
+struct ASTNode* parseBlock(struct mtParserState* state);
+
+struct ASTNode* parseFunctionCall(struct mtParserState* state);
 
 // ________________ Implementation ________________
 
@@ -221,12 +230,19 @@ bool mtParserCheck(struct mtParserState* state, enum TokenType type)
 
 // ____________________ Actual Parser ____________________
 
+
 /*
-*   block       = statment | expression 
-*   statement   = identifier {assign} expression
-*   expression  = {add | sub} term    {add | sub} term 
+*   block       = statments | expressions | function_def
+*   statement   = identifier {assign} expression 
+*   expression  = {add | sub} term {add | sub} term 
 *   term        = factor  {mul | div} factor | factor {pow} exponent  
-*   factor      = number | identifier | "lparen" expression "rparen" 
+*   factor      = number | identifier | "lparen" expression "rparen" | function_call
+*
+*   function_def    = "func" identifier "lparen" [params] "rparen" block "end"
+*   function_call   = identifier "lparen" [arguments] "rparen"
+*
+*   params      =  ("comma", identifier) // () = list, comma separates the identifiers
+*   arguments   = ("comma", expression) // "comma" separates the expressions 
 */
 
 struct ASTNode* parseFactor(struct mtParserState* state)
@@ -279,13 +295,6 @@ struct ASTNode* parseFactor(struct mtParserState* state)
         return node;
     }
 
-    if (mtParserCheck(state, TokenType_None))
-    {
-        char* str = malloc(sizeof(char) * (token.size+1));
-        mtGetTokenString(token, str, token.size);
-        unexpectedTokenError(token);
-        free(str);
-    }
     return NULL;
 }
 
@@ -386,6 +395,112 @@ struct ASTNode* parseStatement(struct mtParserState* state)
     return parseExpression(state);
 }
 
+struct ASTNode* parseParams(struct mtParserState* state)
+{
+    if (!mtParserCheck(state, TokenType_LeftParentheses))
+    {
+        return NULL;
+    }
+    mtParserAdvance(state);
+    
+    struct ASTNode* parameters = mtASTCreateNode();
+    parameters->type = NodeType_ParameterList;
+
+    while (!mtParserCheck(state, TokenType_RightParentheses))
+    {
+        if (mtParserCheck(state, TokenType_Identifier))
+        {
+            struct ASTNode* parameter = mtASTTokenCreateNode(mtParserGetToken(state)); 
+            mtASTAddChildNode(parameters, parameter);
+        }
+    
+        mtParserAdvance(state);
+        if (!mtParserCheck(state, TokenType_Comma))
+        {
+            parserError("Commas must separate all parameters!");
+            return NULL;
+        }
+
+        mtParserAdvance(state);
+    }
+
+    //advance past the right parentheses.
+    mtParserAdvance(state);
+
+    return parameters;
+}
+
+struct ASTNode* parseFunctionDef(struct mtParserState* state)
+{
+    struct Token identifier; 
+
+    if (!mtParserCheck(state, TokenType_FunctionKeyword))
+    {
+        return NULL;
+    }
+    mtParserAdvance(state);
+    
+    if (!mtParserCheck(state, TokenType_Identifier))
+    {
+        parserError("Function identifier must follow function definition keyword!");
+        return NULL;
+    }
+
+    identifier = mtParserGetToken(state);
+    mtParserAdvance(state);
+
+    if (mtParserCheck(state, TokenType_LeftParentheses))
+    {
+        parserError("Parentheses must follow function identifier!");
+        return NULL;
+    }
+
+    struct ASTNode* functionDef = mtASTCreateNode();
+    functionDef->type = NodeType_FunctionDefinition;
+
+    struct ASTNode* identifierNode = mtASTTokenCreateNode(identifier);
+    mtASTAddChildNode(functionDef, identifierNode);
+
+    struct ASTNode* parameterList = parseParams(state);
+    parameterList->type = NodeType_ParameterList;
+    mtASTAddChildNode(functionDef, parameterList);
+
+
+    struct ASTNode* block = parseBlock(state); 
+    if (mtParserCheck(state, TokenType_EndKeyword))
+    {
+        return functionDef;
+    }
+    
+    parserError("Functions must end with \"end\" keyword");
+    return NULL;
+}
+
+struct ASTNode* parseFunctionCall(struct mtParserState* state)
+{
+    size_t startToken = state->currentToken;
+    
+    struct Token identifier;
+
+    if (mtParserCheck(state, TokenType_Identifier))
+    {
+        state->currentToken = startToken;
+        identifier = mtParserGetToken(state);
+    } else {
+        return NULL;
+    }
+
+    mtParserAdvance(state);
+
+    if (!mtParserCheck(state, TokenType_LeftParentheses))
+    {
+        state->currentToken = startToken;
+        return NULL; 
+    }
+
+    mtParserAdvance(state);
+}
+
 struct ASTNode* parseBlock(struct mtParserState* state)
 {
     struct ASTNode* block = mtASTCreateNode();
@@ -396,7 +511,6 @@ struct ASTNode* parseBlock(struct mtParserState* state)
     {
         mtASTAddChildNode(block, child); 
     }
-
     return block;
 }
 

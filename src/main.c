@@ -29,6 +29,9 @@ const struct TokenTypeRules rules = {
 
     .leftParentheses        = '(',
     .rightParentheses       = ')',
+    .leftBracket            = '{',
+    .rightBracket           = '}',
+
     .commaChar              = ',',
 
     .endOfFileChar          = '\0',
@@ -36,7 +39,8 @@ const struct TokenTypeRules rules = {
     .separatorChar          = ' ',
 
     .numbers = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'},
-    .functionKeyword = "junc"
+    .functionKeyword = "func",
+    .endKeyword = "end"
 };
 
 void mtExecute(char* string)
@@ -49,6 +53,8 @@ void mtExecute(char* string)
 
         rules.leftParentheses,
         rules.rightParentheses,
+        rules.leftBracket,
+        rules.rightBracket,
         rules.commaChar,
 
         rules.endOfFileChar,
