@@ -2,6 +2,7 @@
 #include "mtDebug.h"
 #include <stdio.h>
 
+#ifdef mtDebug
 
 struct AllocatedMemoryTracker {
     size_t size;
@@ -94,3 +95,5 @@ void mtInitializeMemoryTracker()
 {
     atexit(mtCheckMemory);
 }
+
+#endif //mtDebug

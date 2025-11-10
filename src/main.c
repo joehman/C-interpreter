@@ -55,7 +55,6 @@ void mtExecute(char* string)
         rules.separatorChar
     };
 
-
     //get the number of tokens from fileString
     size_t tokenCount = 0; 
     mtGetTokenCountFromString(string, &tokenCount, (char*) &separators[0], mtArraySize(separators));
@@ -99,38 +98,31 @@ int mtCheckArgs(int argc, char* argv[])
 
 int main(int argc, char* argv[])
 {
-    printf("Mint version: " mtVersion "\n");
-    //command-line like environment
-    if (true) // change this in the future
+    if (argc != 2)
     {
-        char string[256];
-
-        while (true)
-        {
-            printf(">");
-            fgets(&string[0], sizeof(string), stdin);
-
-            if (strcmp(string, "exit\n") == 0)
-            {
-                return 0;
-            }
-
-            mtExecute(string);
-        }
-        return 0;
+        printf("Usage:\n\t Mint [file]\n");
+        return -1;
     }
 
-    //fix this eventually
+    int result;
+    char* path = argv[1];
+
     // load the file
     size_t fileSize; 
-    mtGetFileCharLength("test.txt", &fileSize);
-    char *fileString = malloc(fileSize); //don't free (except at the end)
-    if (mtLoadTextFromFile("test.txt", fileString, fileSize) != mtSuccess)
+    result = mtGetFileCharLength(path, &fileSize);
+
+    if (result == mtFailOpenFile)
+    {
+        printf("Failed to open file %s\n", path);
+        return mtFailOpenFile; 
+    }
+
+    char *fileString = malloc(fileSize); 
+    if (mtLoadTextFromFile(path, fileString, fileSize) != mtSuccess)
     {
         return mtFail;
     }
     
     mtExecute(fileString);
-    
     free(fileString);
 }

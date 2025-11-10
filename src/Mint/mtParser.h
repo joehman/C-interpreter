@@ -25,11 +25,11 @@
 enum NodeType {
     NodeType_None,
 
-    NodeType_Type,
     NodeType_Assignment,
     NodeType_BinaryOperator,
     NodeType_Number,
-    NodeType_Identifier
+    NodeType_Identifier,
+    NodeType_Block
 };
 
 // abstract syntax tree
@@ -370,10 +370,28 @@ struct ASTNode* parseStatement(struct mtParserState* state)
     
         return operatorNode;
     }
-    
+
+    if (mtParserCheck(state, TokenType_EndOfStatement))
+    {
+        mtParserAdvance(state);
+        return parseStatement(state);
+    }
     return parseExpression(state);
 }
 
+struct ASTNode* parseBlock(struct mtParserState* state)
+{
+    struct ASTNode* block = mtASTCreateNode();
+    block->type = NodeType_Block;
+
+    struct ASTNode* child;
+    while ( (child = parseStatement(state)) )
+    {
+        mtASTAddChildNode(block, child); 
+    }
+
+    return block;
+}
 
 struct ASTNode* mtASTParseTokens(struct Token* tokens, size_t tokenCount)
 {
@@ -386,7 +404,7 @@ struct ASTNode* mtASTParseTokens(struct Token* tokens, size_t tokenCount)
     
     if (tokenCount > 2)
     {
-        rootNode = parseStatement(&state); 
+        rootNode = parseBlock(&state); 
     }
     if (rootNode == NULL)
         return NULL;

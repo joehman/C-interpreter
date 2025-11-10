@@ -1,0 +1,38 @@
+Here's the spec for Mint.
+
+1: Variables and Operators
+
+Variables are declared, and assigned to, with the '=' character, in the following order:
+
+    identifier = value
+
+where identifier is the name of the variable and value is the value being assigned to the variables.
+This is called a statement.
+
+1.1: Operators
+
+The four following operators exist:
+
+'+': addition
+'-': subtraction
+'*': multiplication
+'/': division
+
+Each operator performs its associated action.
+The operators are used like this:
+
+value operator value
+
+where 'value' is any value and 'operator' is one of the four operators above.
+This is called an expression.
+
+2: Types 
+
+A type defines how any data should be interpreted.
+
+2.1: Built-in types
+
+2.1.1: Number
+
+This is a built-in type able to represent any number between the limits of a 32-bit signed integer, including decimals.
+This type must define a way to add, subtract, multiply, divide, and assign two values of the Number type.
