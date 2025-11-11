@@ -408,6 +408,13 @@ struct ASTNode* parseParams(struct mtParserState* state)
 
     while (!mtParserCheck(state, TokenType_RightParentheses))
     {
+        if (mtParserCheck(state, TokenType_Comma))
+        {
+            parserError("Expected identifier before comma!");
+            mtASTFree(parameters);
+            return NULL;
+        }
+        
         if (mtParserCheck(state, TokenType_Identifier))
         {
             struct ASTNode* parameter = mtASTTokenCreateNode(mtParserGetToken(state)); 
@@ -418,9 +425,9 @@ struct ASTNode* parseParams(struct mtParserState* state)
         if (!mtParserCheck(state, TokenType_Comma))
         {
             parserError("Commas must separate all parameters!");
+            mtASTFree(parameters);
             return NULL;
         }
-
         mtParserAdvance(state);
     }
 
@@ -465,14 +472,13 @@ struct ASTNode* parseFunctionDef(struct mtParserState* state)
     parameterList->type = NodeType_ParameterList;
     mtASTAddChildNode(functionDef, parameterList);
 
-
     struct ASTNode* block = parseBlock(state); 
     if (mtParserCheck(state, TokenType_EndKeyword))
     {
         return functionDef;
     }
     
-    parserError("Functions must end with \"end\" keyword");
+    parserError("Functions must end with \'end\' keyword!");
     return NULL;
 }
 
