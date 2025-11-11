@@ -23,6 +23,8 @@ void hashmap_destroy(HashMap* map, void (*free_value)(void*));
 
 void hashmap_put(HashMap* map, const char* key, void* value);
 void hashmap_remove(HashMap* map, const char* key);
+
+//@returns the value of the key-value pair
 void* hashmap_get(HashMap* map, const char* key);
 
 

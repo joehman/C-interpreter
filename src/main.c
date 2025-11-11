@@ -83,7 +83,7 @@ void mtExecute(char* string)
 
     //set all token types, operators, numbers, identifiers etc.
     mtSetTokenTypes(&tokens[0], tokenCount, rules);
-
+   
     // run the parser, which creates an abstract syntax tree.
     struct ASTNode* rootNode = mtASTParseTokens(tokens, tokenCount);
 

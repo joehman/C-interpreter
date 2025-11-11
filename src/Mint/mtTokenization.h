@@ -387,6 +387,11 @@ void mtPrintTokenTypes(struct Token* tokens, size_t tokenCount)
     for (size_t i = 0; i < tokenCount; i++)
     {
         mtPrintTokenType(tokens[i]);
+        if (tokens[i].type == TokenType_NullTerminator)
+        {
+            printf("\n");
+            return;
+        }
     }
     printf("\n");
 }
@@ -431,6 +436,7 @@ void mtSetTokenType(struct Token* token, struct TokenTypeRules rules)
         if (character == rules.commaChar)
         {
             token->type = TokenType_Comma;
+            return;
         }
 
         if (character == rules.rightBracket)
@@ -476,14 +482,15 @@ void mtSetTokenType(struct Token* token, struct TokenTypeRules rules)
         }
     }
 
-    if (mtTokenCmp(*token, mtCreateStringToken(rules.functionKeyword) ))
+    if (mtTokenCmp(*token, mtCreateStringToken(rules.functionKeyword)) == 0)
     {
         token->type = TokenType_FunctionKeyword;
         return;
     }
-    if (mtTokenCmp(*token, mtCreateStringToken(rules.endKeyword)))
+    if (mtTokenCmp(*token, mtCreateStringToken(rules.endKeyword)) == 0)
     {
         token->type = TokenType_EndKeyword;
+        return;
     }
 
     bool isIntegerLiteral = mtOnlyOfN(token->string, token->size, (char*)&rules.numbers[0], 10);

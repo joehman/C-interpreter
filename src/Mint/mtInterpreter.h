@@ -12,8 +12,6 @@
 #include <Mint/types/mtGlobalTypes.h>
 
 #include "hashmap.h"
-#include <math.h>
-
 #include <Mint/types/mtType.h>
 
 // ___________ Declarations ______________
@@ -23,19 +21,34 @@ void mtInterpret(struct ASTNode* node);
 // ___________ Implementation ___________
 #ifdef mtImplementation
 
+
 struct Variable {
-    //The type tells the intepreter how to interpret it.
     struct Type type; 
     void* value;
+};
+
+
+struct Parameter {
+    const char* identifier;
+    struct Type* type; // could be NULL
+};
+
+struct Function {
+    struct ASTNode* block;
+
+    const char* identifier;
+    
+    size_t parameterCount; 
+    struct Parameter* parameters;
 };
 
 struct Scope {
     struct Scope* parent;    
     HashMap* variables;
+    HashMap* functions;
 };
 
 struct Variable* interpretExpression(struct ASTNode* node, struct Scope* scope);
-
 //@brief print errors to stderr, uses printf formats
 static void interpreterError(struct ASTNode* node, const char* fmt, ...)
 {
@@ -58,6 +71,7 @@ struct Scope* mtCreateScope()
 
     scope->parent = NULL;
     scope->variables = hashmap_create(2);
+    scope->functions = hashmap_create(2);
 
     return scope;
 }
@@ -102,12 +116,79 @@ struct Variable* getVariableFromScope(struct Scope* scope, const char* key)
     return NULL;
 }
 
+struct Function* getFunctionFromScope(struct Scope* scope, const char* key)
+{
+    if (scope == NULL)
+    {
+        return NULL;
+    }
+    
+    struct Function* out = NULL;
+    
+    struct Scope* currentScope = scope;
+    while (currentScope)
+    {
+        if ((out = hashmap_get(scope->functions, key)))
+        {
+            return out;
+        }
+
+        //check the scope above
+        currentScope = scope->parent;
+    }
+
+    return NULL;
+}
+
+void intepretFunctionDef(struct ASTNode* node, struct Scope* scope)
+{
+    // children of the function_def node:
+    // 1st      child: identifier
+    // 2..      child: parameter(s)
+    // last     child: block
+    if (node->type != NodeType_FunctionDefinition)
+    {
+        return;
+    }
+
+    struct Function* out = malloc(sizeof(struct Function));
+
+    struct Token identifier = node->children[0]->token;
+    if (identifier.type != TokenType_Identifier)
+    {
+        return;
+    }
+   
+    //childCount minus the first and last children (minus the identifier and block nodes.)
+    int parameterCount = node->childCount-2; 
+    if (node->children[parameterCount-1]->type != NodeType_Block)
+    {
+        return; 
+    }
+
+    out->parameterCount = parameterCount;
+    out->parameters = malloc( sizeof(struct Parameter)*parameterCount );
+
+    for (size_t i = 0; i < parameterCount; i++)
+    {
+        int nodeOffset = 1;
+        struct Token token = node->children[nodeOffset+i]->token;
+        
+
+        char nodeStr[token.size];
+        mtGetTokenString(token, (char*)&nodeStr, token.size);
+
+        out->parameters[i].identifier = strndup(nodeStr, token.size);
+        out->parameters[i].type = NULL; // haven't implemented type annotations yet. 
+    }    
+}
+
 void interpretStatement(struct ASTNode* node, struct Scope* scope)
 {
     struct ASTNode* leftNode = node->children[0];
     struct ASTNode* rightNode = node->children[1];
 
-    struct Variable* left = interpretExpression(leftNode, scope);
+    struct Variable* left = intepretExpression(leftNode, scope);
     struct Variable* right = interpretExpression(rightNode, scope);
 
     if (!right)
