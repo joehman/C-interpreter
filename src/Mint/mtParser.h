@@ -42,7 +42,8 @@ enum NodeType {
     NodeType_FunctionDefinition,
     NodeType_FunctionCall,
     NodeType_ParameterList, // not an actual list
-    NodeType_Argument
+    NodeType_ArgumentList,
+
 };
 
 // abstract syntax tree
@@ -482,10 +483,52 @@ struct ASTNode* parseFunctionDef(struct mtParserState* state)
     return NULL;
 }
 
+struct ASTNode* parseArguments(struct mtParserState* state)
+{
+    if (!mtParserCheck(state, TokenType_LeftParentheses))
+    {
+        return NULL;
+    }
+    mtParserAdvance(state);
+    
+    struct ASTNode* parameters = mtASTCreateNode();
+    parameters->type = NodeType_ArgumentList;
+
+    while (!mtParserCheck(state, TokenType_RightParentheses))
+    {
+        if (mtParserCheck(state, TokenType_Comma))
+        {
+            parserError("Expected expression before comma!");
+            mtASTFree(parameters);
+            return NULL;
+        }
+        
+        if (mtParserCheck(state, TokenType_Identifier))
+        {
+            struct ASTNode* expression = parseExpression(state);
+            mtASTAddChildNode(parameters, expression);
+        }
+    
+        mtParserAdvance(state);
+        if (!mtParserCheck(state, TokenType_Comma))
+        {
+            parserError("Commas must separate all parameters!");
+            mtASTFree(parameters);
+            return NULL;
+        }
+        mtParserAdvance(state);
+    }
+
+    //advance past the right parentheses.
+    mtParserAdvance(state);
+
+    return parameters;
+}
+
 struct ASTNode* parseFunctionCall(struct mtParserState* state)
 {
     size_t startToken = state->currentToken;
-    
+ 
     struct Token identifier;
 
     if (mtParserCheck(state, TokenType_Identifier))
@@ -503,8 +546,15 @@ struct ASTNode* parseFunctionCall(struct mtParserState* state)
         state->currentToken = startToken;
         return NULL; 
     }
+    struct ASTNode* arguments = parseArguments(state);
+   
+    struct ASTNode* functionCall = mtASTCreateNode();
+    functionCall->type = NodeType_FunctionCall;
+   
+    mtASTAddChildNode(functionCall, mtASTTokenCreateNode(identifier));
+    mtASTAddChildNode(functionCall, arguments);
 
-    mtParserAdvance(state);
+    return functionCall;
 }
 
 struct ASTNode* parseBlock(struct mtParserState* state)
