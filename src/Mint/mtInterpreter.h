@@ -49,6 +49,7 @@ struct Scope {
 };
 
 struct Variable* interpretExpression(struct ASTNode* node, struct Scope* scope);
+void interpretBlock(struct ASTNode* node, struct Scope* parent);
 //@brief print errors to stderr, uses printf formats
 static void interpreterError(struct ASTNode* node, const char* fmt, ...)
 {
@@ -140,12 +141,60 @@ struct Function* getFunctionFromScope(struct Scope* scope, const char* key)
     return NULL;
 }
 
-void intepretFunctionDef(struct ASTNode* node, struct Scope* scope)
+struct Variable* interpretFunctionCall(struct ASTNode* node, struct Scope* scope)
+{
+    struct Token identifier = node->children[0]->token; 
+    struct ASTNode* argumentList = node->children[1];
+
+    char tokenStr[identifier.size];
+    mtGetTokenString(identifier, (char*)&tokenStr, identifier.size);
+    struct Function* func = getFunctionFromScope(scope, tokenStr);
+    if (!func)
+    {
+        interpreterError(node, "No such function!");
+        return NULL;
+    }
+
+    if (argumentList->childCount != func->parameterCount)   
+    {
+        if (argumentList->childCount > func->parameterCount)
+        {
+            interpreterError(node, "Too many arguments to function, expected %d arguments!", func->parameterCount);
+        }
+        if (argumentList->childCount < func->parameterCount)
+        {
+            interpreterError(node, "Too few arguments to function, expected %d arguments!", func->parameterCount);
+        }
+        return NULL;
+    }
+
+    struct Scope* arguments = mtCreateScope();
+    arguments->parent = scope; 
+
+    for (size_t i = 0; i < argumentList->childCount; i++)
+    {
+        struct Variable* argument = interpretExpression(argumentList->children[i], scope);
+
+        if (!argument)
+            return NULL;
+
+        hashmap_put(arguments->variables, func->parameters[i].identifier, &argument);   
+    }
+    
+    interpretBlock(func->block, arguments);
+
+    return NULL;
+}
+
+void interpretFunctionDef(struct ASTNode* node, struct Scope* scope)
 {
     // children of the function_def node:
     // 1st      child: identifier
-    // 2..      child: parameter(s)
-    // last     child: block
+    // 2nd      child: parameterList 
+    // 3rd      child: block
+    //
+    // children of the parameterList node:
+    // 1...nth  child: parameter
     if (node->type != NodeType_FunctionDefinition)
     {
         return;
@@ -158,29 +207,27 @@ void intepretFunctionDef(struct ASTNode* node, struct Scope* scope)
     {
         return;
     }
-   
-    //childCount minus the first and last children (minus the identifier and block nodes.)
-    int parameterCount = node->childCount-2; 
-    if (node->children[parameterCount-1]->type != NodeType_Block)
+    
+    struct ASTNode* parameterList = node->children[1];
+
+    out->parameterCount = parameterList->childCount;
+    out->parameters = malloc( sizeof(struct Parameter) * out->parameterCount);
+    
+    for (size_t i = 0; i < out->parameterCount; i++)
     {
-        return; 
+        struct ASTNode* parameterNode = parameterList->children[i];         
+       
+        size_t tokenSize = parameterNode->token.size;
+        char tokenStr[parameterNode->token.size];
+
+        mtGetTokenString(parameterNode->token, (char*) &tokenStr, tokenSize);
+        out->parameters[i].identifier = strndup(tokenStr, tokenSize); 
+        out->parameters[i].type = NULL;
+        struct ASTNode* block = node->children[2];
+        out->block = block; 
+
+        hashmap_put(scope->functions, out->identifier, out);
     }
-
-    out->parameterCount = parameterCount;
-    out->parameters = malloc( sizeof(struct Parameter)*parameterCount );
-
-    for (size_t i = 0; i < parameterCount; i++)
-    {
-        int nodeOffset = 1;
-        struct Token token = node->children[nodeOffset+i]->token;
-        
-
-        char nodeStr[token.size];
-        mtGetTokenString(token, (char*)&nodeStr, token.size);
-
-        out->parameters[i].identifier = strndup(nodeStr, token.size);
-        out->parameters[i].type = NULL; // haven't implemented type annotations yet. 
-    }    
 }
 
 void interpretStatement(struct ASTNode* node, struct Scope* scope)
@@ -188,7 +235,7 @@ void interpretStatement(struct ASTNode* node, struct Scope* scope)
     struct ASTNode* leftNode = node->children[0];
     struct ASTNode* rightNode = node->children[1];
 
-    struct Variable* left = intepretExpression(leftNode, scope);
+    struct Variable* left = interpretExpression(leftNode, scope);
     struct Variable* right = interpretExpression(rightNode, scope);
 
     if (!right)
@@ -216,7 +263,6 @@ struct Variable* interpretExpression(struct ASTNode* node, struct Scope* scope)
 {
 	if (node == NULL)
     {
-		interpreterError(node, "Unsuccsessful Parsing! Node was NULL!");
         return NULL;
 	}
 
@@ -242,8 +288,7 @@ struct Variable* interpretExpression(struct ASTNode* node, struct Scope* scope)
 
         out->type.set(out->value, &num);
 	    return out;
-	}
-    if(node->token.type == TokenType_Identifier)
+	} else if (node->type == NodeType_Identifier)
     {
         struct Variable* out = NULL;
         
@@ -251,6 +296,13 @@ struct Variable* interpretExpression(struct ASTNode* node, struct Scope* scope)
         mtGetTokenString(node->token, (char*)&str, node->token.size); 
         
         out = getVariableFromScope(scope, str); 
+
+        return out;
+    } else if (node->type == NodeType_FunctionCall)
+    {
+        struct Variable* out = NULL;
+
+        out = interpretFunctionCall(node, scope);        
 
         return out;
     }
@@ -295,7 +347,7 @@ struct Variable* interpretExpression(struct ASTNode* node, struct Scope* scope)
     return out;
 }
 
-void interpretBlock(struct ASTNode* node)
+void interpretBlock(struct ASTNode* node, struct Scope* parent)
 {
     if (node->childCount <= 0)
     {
@@ -303,14 +355,14 @@ void interpretBlock(struct ASTNode* node)
     }
 
     struct Scope* scope = mtCreateScope(); 
-
+    scope->parent = parent;
     for (size_t i = 0; i < node->childCount; i++) 
     {
         struct Variable* expression = NULL;
         
         struct ASTNode* currentNode = node->children[i];
-        
-        if (currentNode->type == NodeType_BinaryOperator)
+       
+        if (currentNode->type == NodeType_BinaryOperator || currentNode->type == NodeType_FunctionCall)
         {
             expression = interpretExpression(currentNode, scope); 
         }
@@ -329,7 +381,7 @@ void interpretBlock(struct ASTNode* node)
 
 void mtInterpret(struct ASTNode* node)
 {
-    interpretBlock(node);
+    interpretBlock(node, NULL);
 }
 
 
