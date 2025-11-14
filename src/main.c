@@ -1,15 +1,5 @@
 /*
-* Mint is an interpreter. Short for 'my interpreter'.
-* Functions will be prefixed with mt, short for Mint
-* -------- Syntax -----------
-*
-* newlines will end statements, like python.
-*
-* functions are called like this: func(args, moreargs)
-* strings start and end with ". 
-* 
-* Order for variable declaration will look like this:
-* Identifier = expression 
+* Mint is an interpreter. Short for 'my interpreter
 */
 
 #define mtImplementation

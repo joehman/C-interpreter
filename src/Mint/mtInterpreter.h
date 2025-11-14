@@ -105,7 +105,7 @@ struct Variable* getVariableFromScope(struct Scope* scope, const char* key)
     struct Scope* currentScope = scope;
     while(currentScope)
     {
-        if ( (out = hashmap_get(scope->variables, key)) )
+        if ( (out = hashmap_get(currentScope->variables, key)) )
         {
             return out;
         }
@@ -129,7 +129,7 @@ struct Function* getFunctionFromScope(struct Scope* scope, const char* key)
     struct Scope* currentScope = scope;
     while (currentScope)
     {
-        if ((out = hashmap_get(scope->functions, key)))
+        if ( (out = hashmap_get(scope->functions, key)) )
         {
             return out;
         }
@@ -149,6 +149,7 @@ struct Variable* interpretFunctionCall(struct ASTNode* node, struct Scope* scope
     char tokenStr[identifier.size];
     mtGetTokenString(identifier, (char*)&tokenStr, identifier.size);
     struct Function* func = getFunctionFromScope(scope, tokenStr);
+
     if (!func)
     {
         interpreterError(node, "No such function!");
@@ -175,12 +176,13 @@ struct Variable* interpretFunctionCall(struct ASTNode* node, struct Scope* scope
     {
         struct Variable* argument = interpretExpression(argumentList->children[i], scope);
 
+
         if (!argument)
             return NULL;
 
-        hashmap_put(arguments->variables, func->parameters[i].identifier, &argument);   
+        hashmap_put(arguments->variables, func->parameters[i].identifier, argument);   
     }
-    
+   
     interpretBlock(func->block, arguments);
 
     return NULL;
@@ -207,6 +209,9 @@ void interpretFunctionDef(struct ASTNode* node, struct Scope* scope)
     {
         return;
     }
+    char tokenStr[identifier.size];
+    mtGetTokenString(identifier, (char*)&tokenStr, identifier.size);
+    out->identifier = strndup(tokenStr, identifier.size);
     
     struct ASTNode* parameterList = node->children[1];
 
@@ -225,7 +230,7 @@ void interpretFunctionDef(struct ASTNode* node, struct Scope* scope)
         out->parameters[i].type = NULL;
         struct ASTNode* block = node->children[2];
         out->block = block; 
-
+        
         hashmap_put(scope->functions, out->identifier, out);
     }
 }
@@ -361,7 +366,7 @@ void interpretBlock(struct ASTNode* node, struct Scope* parent)
         struct Variable* expression = NULL;
         
         struct ASTNode* currentNode = node->children[i];
-       
+      
         if (currentNode->type == NodeType_BinaryOperator || currentNode->type == NodeType_FunctionCall)
         {
             expression = interpretExpression(currentNode, scope); 
@@ -369,6 +374,10 @@ void interpretBlock(struct ASTNode* node, struct Scope* parent)
         if (currentNode->type == NodeType_Assignment)
         {
             interpretStatement(currentNode, scope); 
+        }
+        if (currentNode->type == NodeType_FunctionDefinition)
+        {
+            interpretFunctionDef(currentNode, scope); 
         }
 
         //temporary

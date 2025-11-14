@@ -247,6 +247,7 @@ struct ASTNode* parseFactor(struct mtParserState* state)
         mtParserAdvance(state);
         struct ASTNode* node = mtASTTokenCreateNode(token);
         node->type = NodeType_Number; 
+
         return node;
     } else if ( (node = parseFunctionCall(state)) )
     {
@@ -356,6 +357,8 @@ struct ASTNode* parseExpression(struct mtParserState* state)
 
 struct ASTNode* parseStatement(struct mtParserState* state)
 {
+    size_t startToken = state->currentToken;
+    
     if (mtParserCheck(state, TokenType_Identifier))
     {
         struct Token identifier = mtParserGetToken(state);
@@ -365,7 +368,7 @@ struct ASTNode* parseStatement(struct mtParserState* state)
         if (operator.type != TokenType_OperatorAssign)
         {
             //handle it as an expression instead
-            state->currentToken--;
+            state->currentToken = startToken;
             return parseExpression(state); 
         }
 
@@ -441,8 +444,11 @@ struct ASTNode* parseParams(struct mtParserState* state)
 
 struct ASTNode* parseFunctionDef(struct mtParserState* state)
 {
-    struct Token identifier; 
 
+    while (mtParserCheck(state, TokenType_EndOfStatement))
+    {
+        mtParserAdvance(state);
+    }
     if (!mtParserCheck(state, TokenType_FunctionKeyword))
     {
         return NULL;
@@ -455,6 +461,7 @@ struct ASTNode* parseFunctionDef(struct mtParserState* state)
         return NULL;
     }
 
+    struct Token identifier; 
     identifier = mtParserGetToken(state);
     mtParserAdvance(state);
 
@@ -478,6 +485,7 @@ struct ASTNode* parseFunctionDef(struct mtParserState* state)
     if (mtParserCheck(state, TokenType_EndKeyword))
     {
         mtParserAdvance(state);
+        mtASTAddChildNode(functionDef, block);
         return functionDef;
     }
     
@@ -570,12 +578,19 @@ struct ASTNode* parseFunctionCall(struct mtParserState* state)
 
 struct ASTNode* parseBlock(struct mtParserState* state)
 {
+
     struct ASTNode* block = mtASTCreateNode();
     block->type = NodeType_Block;
 
     struct ASTNode* child;
     while (!mtParserCheck(state, TokenType_NullTerminator))
     {
+/*
+        printf("parsing token: ");
+        mtPrintTokenString(mtParserGetToken(state));
+        printf(" on line %d", mtParserGetToken(state).line);
+        printf("\n");
+*/
         if ( (child = parseFunctionDef(state)) )
         {
             mtASTAddChildNode(block, child); 
@@ -584,6 +599,10 @@ struct ASTNode* parseBlock(struct mtParserState* state)
         if ( (child = parseStatement(state)) )
         {
             mtASTAddChildNode(block, child); 
+            continue;
+        }
+        if (mtParserCheck(state, TokenType_EndOfStatement))
+        {
             continue;
         }
 
