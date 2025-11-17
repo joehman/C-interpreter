@@ -1,68 +1,6 @@
 #include "mtTokenizer.h"
 
-void mtFindToken(struct Token* token, char* position, size_t searchLength, char* separators, size_t separatorCount)
-{
-    token->string = position;
-
-    if (mtAnyOfN(&position[0], 1, separators, separatorCount))
-    {
-        token->size = 1;
-        return;
-    }
-    
-    // this assumes the first token is not a separator, which is guarranteed by the check above.
-    for (int i = 0; i < searchLength; i++)
-    {
-        // check the character after this one
-        if (mtAnyOfN(&position[i+1], 1, separators, separatorCount))
-        {
-            // if it is a separator, stop now so that we don't include it.
-            // add 1 because i is an index and not a count.
-            token->size = i+1;
-            return;
-        }
-    }
-    return;
-}
-
-
-void mtFindAllTokens(char* str, struct Token* tokens, size_t maxTokens, char* separators, size_t separatorCount)
-{
-    int line = 1;
-
-    char* ptr = str;
-    int remainingLength = strlen(str)+1;
-
-    for (size_t i = 0; i < maxTokens; i++) 
-    {
-        mtFindToken(&tokens[i], ptr, remainingLength, separators, separatorCount);
-
-        if (tokens[i].size == 1 && *tokens[i].string == '\n')
-        {
-            line += 1; 
-        }
-
-        tokens[i].line = line;
-
-        ptr += tokens[i].size;
-        remainingLength -= tokens[i].size;
-    }
-}
-
-size_t mtGetTokenCount(struct Token* tokens, size_t tokenCount)
-{
-    for (size_t i = 0; i < tokenCount; i++) 
-    {
-        if (strcmp(tokens->string, "\0") == 0)
-        {
-            return i+1;
-        }
-    }
-    printf("mtGetTokenCount: Token list does not terminate with \\0 token!\n");
-    return tokenCount;
-}
-
-void mtSetTokenType(struct Token* token, struct TokenTypeRules rules)
+void mtTokenizerSetTokenType(struct Token* token, struct TokenTypeRules rules)
 {
     bool isEmpty = (token->size == 0) || (token->string == NULL);
     if (isEmpty) // no need to check for anything else if it's empty
@@ -172,11 +110,84 @@ void mtSetTokenType(struct Token* token, struct TokenTypeRules rules)
     token->type = TokenType_Identifier;
 }
 
-void mtSetTokenTypes(struct Token* tokens, size_t tokenCount, struct TokenTypeRules rules)
+void mtTokenizerSetTokenTypes(struct Token* tokens, size_t tokenCount, struct TokenTypeRules rules)
 {
     for (size_t i = 0; i < tokenCount; i++)
     {
-        mtSetTokenType(&tokens[i], rules);
+        mtTokenizerSetTokenType(&tokens[i], rules);
     }
+}
+
+void mtTokenizerFindToken(struct Token* token, char* position, size_t searchLength, char* separators, size_t separatorCount)
+{
+    token->string = position;
+
+    if (mtAnyOfN(&position[0], 1, separators, separatorCount))
+    {
+        token->size = 1;
+        return;
+    }
+    
+    // this assumes the first token is not a separator, which is guarranteed by the check above.
+    for (int i = 0; i < searchLength; i++)
+    {
+        // check the character after this one
+        if (mtAnyOfN(&position[i+1], 1, separators, separatorCount))
+        {
+            // if it is a separator, stop now so that we don't include it.
+            // add 1 because i is an index and not a count.
+            token->size = i+1;
+            return;
+        }
+    }
+    return;
+}
+
+
+void mtTokenizerFindAllTokens(char* str, struct Token* tokens, size_t maxTokens, char* separators, size_t separatorCount)
+{
+    int line = 1;
+
+    char* ptr = str;
+    int remainingLength = strlen(str)+1;
+
+    for (size_t i = 0; i < maxTokens; i++) 
+    {
+        mtTokenizerFindToken(&tokens[i], ptr, remainingLength, separators, separatorCount);
+
+        if (tokens[i].size == 1 && *tokens[i].string == '\n')
+        {
+            line += 1; 
+        }
+
+        tokens[i].line = line;
+
+        ptr += tokens[i].size;
+        remainingLength -= tokens[i].size;
+    }
+}
+
+void mtTokenizerGetTokenCountFromString(char* str, size_t *count, char* separators, size_t separatorCount)
+{
+    size_t tokenCount = 0;
+    int i = 0;
+    while (i < strlen(str))
+    {
+        // the current character is a separator
+        if (mtAnyOfN(&str[i], 1, separators, separatorCount))
+        {
+            tokenCount++;
+            i++;
+        } else {
+            //start of a new token
+            tokenCount++;
+            //advance until the end of the token
+            while (i < strlen(str) && !mtAnyOfN(&str[i], 1, separators, separatorCount))
+                i++;
+        }
+    }
+    //add the null-terminator
+    tokenCount++;
+    *count = tokenCount;
 }
 

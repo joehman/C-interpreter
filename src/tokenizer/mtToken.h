@@ -52,25 +52,6 @@ void mtCreateToken(struct Token* token);
 void mtCreateTokens(struct Token* tokens, size_t tokenCount);
 
 
-// @brief Finds the first token after (and including) char* position
-//
-// @param token a token created with mtCreateToken()
-// @param position a pointer to any string
-// @param searchLength defines how far forward from char* position we should search.
-// @param separators an array of chars which define what characters should separate tokens.
-// @param separatorCount the number of elements in char* separators.
-void mtFindToken(struct Token* token, char* position, size_t searchLength, char* separators, size_t separatorCount);
-
-//@brief Finds all tokens in char* str then writes them to struct Token* tokens.
-//
-//@param str the text to be tokenized.
-//
-//@param tokens an array of tokens created with mtCreateTokens()
-//@param maxTokens the maximum number of tokens to write to.
-//
-//@param separators an array of chars which define what characters should separate tokens.
-//@param separatorCount the number of elements in the separators array.
-void mtFindAllTokens(char* str, struct Token* tokens, size_t maxTokens, char* separators, size_t separatorCount);
 
 // @brief Removes all tokens in filterTokens from unFilteredTokens
 //
@@ -126,6 +107,5 @@ int mtTokenCmp(struct Token t1, struct Token t2);
 //@param token the token
 //@param str a string with the capacity of token.size+1
 void mtGetTokenString(struct Token token, char* str, size_t stringSize);
-
 
 #endif

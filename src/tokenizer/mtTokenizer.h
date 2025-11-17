@@ -50,13 +50,13 @@ struct TokenTypeRules
 // @param count a pointer to where the number of tokens will be stored
 // @param separators the characters which separate tokens
 // @param separatorCount the number of separators
-void mtGetTokenCountFromString(char* str, size_t *count, char* separators, size_t separatorCount);
+void mtTokenizerGetTokenCountFromString(char* str, size_t *count, char* separators, size_t separatorCount);
 
 //@brief Sets the token's type based on rules.
 //
 //@param token a pointer to a token created with mtCreateToken and populated with mtFindToken.
 //@param rules the rules to apply when deciding a token's type.
-void mtSetTokenType(struct Token* token, struct TokenTypeRules rules);
+void mtTokenizerSetTokenType(struct Token* token, struct TokenTypeRules rules);
 
 //@brief Sets an array of tokens' types based on rules
 //
@@ -64,5 +64,34 @@ void mtSetTokenType(struct Token* token, struct TokenTypeRules rules);
 //@param tokenCount the number of elements in the tokens array
 //
 //@param rules the rules to apply when deciding the individual tokens' types.
-void mtSetTokenTypes(struct Token* tokens, size_t tokenCount, struct TokenTypeRules rules);
+void mtTokenizerSetTokenTypes(struct Token* tokens, size_t tokenCount, struct TokenTypeRules rules);
+
+//@brief Gets the number of tokens from str
+//
+//@param str a null-terminated string
+//@param count the place to write the number of tokens to
+//@param separators a list of chars which separate tokens
+//@param separatorCount the number of separators
+void mtTokenizerGetTokenCountFromString(char* str, size_t *count, char* separators, size_t separatorCount);
+
+
+// @brief Finds the first token after (and including) char* position
+//
+// @param token a token created with mtCreateToken()
+// @param position a pointer to any string
+// @param searchLength defines how far forward from char* position we should search.
+// @param separators an array of chars which define what characters should separate tokens.
+// @param separatorCount the number of elements in char* separators.
+void mtTokenizerFindToken(struct Token* token, char* position, size_t searchLength, char* separators, size_t separatorCount);
+
+//@brief Finds all tokens in char* str then writes them to struct Token* tokens.
+//
+//@param str the text to be tokenized.
+//
+//@param tokens an array of tokens created with mtCreateTokens()
+//@param maxTokens the maximum number of tokens to write to.
+//
+//@param separators an array of chars which define what characters should separate tokens.
+//@param separatorCount the number of elements in the separators array.
+void mtTokenizerFindAllTokens(char* str, struct Token* tokens, size_t maxTokens, char* separators, size_t separatorCount);
 #endif //mtTokenization_h

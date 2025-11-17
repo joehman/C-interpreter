@@ -5,6 +5,8 @@
 #include <util/mtUtilities.h>
 
 #include <interpreter/mtScope.h>
+#include <interpreter/mtExpression.h>
+#include <interpreter/mtBlock.h>
 
 
 static void interpreterError(struct ASTNode* node, const char* fmt, ...)

@@ -55,14 +55,14 @@ void mtExecute(char* string)
 
     //get the number of tokens from fileString
     size_t tokenCount = 0; 
-    mtGetTokenCountFromString(string, &tokenCount, (char*) &separators[0], mtArraySize(separators));
+    mtTokenizerGetTokenCountFromString(string, &tokenCount, (char*) &separators[0], mtArraySize(separators));
 
     //allocate the array with that size
     struct Token *tokens = malloc(tokenCount * sizeof(struct Token));
     mtCreateTokens(tokens, tokenCount);
     
     //populate the tokens array
-    mtFindAllTokens(string, &tokens[0], tokenCount, (char*)&separators[0], mtArraySize(separators));    
+    mtTokenizerFindAllTokens(string, &tokens[0], tokenCount, (char*)&separators[0], mtArraySize(separators));    
 
     //remove all unneeded tokens, eg. empty space.
     const struct Token unneededTokens[] = {
@@ -71,7 +71,7 @@ void mtExecute(char* string)
     mtFilterTokens(&tokens[0], tokenCount, &unneededTokens[0], mtArraySize(unneededTokens));
 
     //set all token types, operators, numbers, identifiers etc.
-    mtSetTokenTypes(&tokens[0], tokenCount, rules);
+    mtTokenizerSetTokenTypes(&tokens[0], tokenCount, rules);
    
     // run the parser, which creates an abstract syntax tree.
     struct ASTNode* rootNode = mtASTParseTokens(tokens, tokenCount);
