@@ -26,9 +26,9 @@ struct HashMapEntry* create_hashmap_entry(const char* key, void* value)
 
 // PUBLIC FUNCTIONS
 
-HashMap* hashmap_create(size_t initialSize)
+struct HashMap* hashmap_create(size_t initialSize)
 {
-    HashMap* map = malloc(sizeof(HashMap));
+    struct HashMap* map = malloc(sizeof(struct HashMap));
     
     map->buckets = calloc(initialSize, sizeof(struct HashMapEntry*));
     map->size = initialSize;
@@ -37,7 +37,7 @@ HashMap* hashmap_create(size_t initialSize)
     return map;
 }
 
-void hashmap_destroy(HashMap* map, void (*free_value)(void*))
+void hashmap_destroy(struct HashMap* map, void (*free_value)(void*))
 {
     for (size_t i = 0; i < map->size; i++) {
         struct HashMapEntry *entry = map->buckets[i];
@@ -54,7 +54,7 @@ void hashmap_destroy(HashMap* map, void (*free_value)(void*))
     free(map);
 }
 
-void hashmap_put(HashMap* map, const char* key, void* value)
+void hashmap_put(struct HashMap* map, const char* key, void* value)
 {
     unsigned int index = hash((unsigned char*)key) % map->size;
     
@@ -75,7 +75,7 @@ void hashmap_put(HashMap* map, const char* key, void* value)
     map->count++;
 }
 
-void hashmap_remove(HashMap* map, const char* key)
+void hashmap_remove(struct HashMap* map, const char* key)
 {
     unsigned int index = hash((unsigned char*)key) % map->size;
 
@@ -99,7 +99,7 @@ void hashmap_remove(HashMap* map, const char* key)
     }
 }
 
-void* hashmap_get(HashMap* map, const char* key)
+void* hashmap_get(struct HashMap* map, const char* key)
 {
     unsigned int index = hash((unsigned char*)key) % map->size;
 
@@ -112,4 +112,3 @@ void* hashmap_get(HashMap* map, const char* key)
     }
     return NULL;
 }
-

@@ -2,8 +2,8 @@
 #ifndef MT_NUMBER_H
 #define MT_NUMBER_H
 
-#include "mtType.h"
-#include <Mint/mtTokenization.h>
+#include <types/mtType.h>
+#include <tokenizer/mtTokenization.h>
 
 struct mtNumber {
 	enum {

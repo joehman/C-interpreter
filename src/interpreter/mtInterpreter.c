@@ -1,32 +1,9 @@
-#ifndef mtInterpreter_h
-#define mtInterpreter_h
-
-/*
-*   This is the part of the code that actually interprets all the code and does stuff.
-*/
-
-#include "mtUtilities.h" 
-#include "mtParser.h"
-#include "mtTokenization.h"
-
-#include <Mint/types/mtGlobalTypes.h>
-
-#include "hashmap.h"
-#include <Mint/types/mtType.h>
-
-// ___________ Declarations ______________
-
-void mtInterpret(struct ASTNode* node);
-
-// ___________ Implementation ___________
-#ifdef mtImplementation
-
+#include "mtInterpreter.h"
 
 struct Variable {
     struct Type type; 
     void* value;
 };
-
 
 struct Parameter {
     const char* identifier;
@@ -44,8 +21,8 @@ struct Function {
 
 struct Scope {
     struct Scope* parent;    
-    HashMap* variables;
-    HashMap* functions;
+    struct HashMap* variables;
+    struct HashMap* functions;
 };
 
 struct Variable* interpretExpression(struct ASTNode* node, struct Scope* scope);
@@ -392,8 +369,3 @@ void mtInterpret(struct ASTNode* node)
 {
     interpretBlock(node, NULL);
 }
-
-
-#endif // mtImplementation
-
-#endif // mtInterpreter_h
