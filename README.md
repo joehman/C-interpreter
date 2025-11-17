@@ -11,6 +11,6 @@ It should be cross-compatible and work out of the box since it exclusively uses 
 
 Files can be passed by inputting them as an argument. 
 
-```console
+```
 Mint [file]
 ```

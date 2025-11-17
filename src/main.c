@@ -2,8 +2,9 @@
 * Mint is an interpreter. Short for 'my interpreter
 */
 
-#include <tokenizer/mtTokenization.h>
+#include <tokenizer/mtTokenizer.h>
 #include <parser/mtParser.h>
+#include <parser/mtASTTree.h>
 #include <interpreter/mtInterpreter.h>
 
 #define mtVersion "0.3"

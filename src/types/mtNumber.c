@@ -1,4 +1,4 @@
-#include <tokenizer/mtTokenization.h>
+#include <tokenizer/mtToken.h>
 #include <types/mtNumber.h>
 #include <types/mtType.h>
 

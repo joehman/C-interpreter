@@ -1,7 +1,6 @@
 
 #include "mtParser.h"
-
-#define mtASTInitialChildCapacity 2
+#include <parser/mtASTTree.h>
 
 // ___________ Helper functions ______________
 
@@ -26,103 +25,6 @@ void unexpectedTokenError(struct mtParserState state)
 {
     parserError(state, "Unexpected token");
 }
-struct ASTNode* mtASTAddNode(struct ASTNode* parent)
-{
-    if (parent->childCount >= parent->childCapacity)
-    {
-        parent->childCapacity *= 2;
-        parent->children = realloc(parent->children, sizeof(struct ASTNode*) * parent->childCapacity);
-    }
-
-    int index = parent->childCount;
-    struct ASTNode* ptr = ( parent->children[index] = mtASTCreateNode() );
-    parent->childCount++;
-
-    return ptr;
-}   
-
-int mtASTAddChildNode(struct ASTNode* parent, struct ASTNode* child)
-{
-    if (parent->childCount >= parent->childCapacity)
-    {
-        parent->childCapacity *= 2;
-        parent->children = realloc(parent->children, sizeof(struct ASTNode*) * parent->childCapacity);
-    }
-    int index = parent->childCount;
-    
-    parent->children[index] = child;
-    parent->childCount++;
-
-    return index;
-}   
-struct ASTNode* mtASTCreateNode()
-{
-
-    struct ASTNode* out = malloc( sizeof(struct ASTNode) );
-    out->type = NodeType_None;
-    out->childCount = 0;
-    out->childCapacity = mtASTInitialChildCapacity;
-
-    out->children = malloc (sizeof(struct ASTNode*) * mtASTInitialChildCapacity);
-    mtCreateToken(&out->token);
-
-    return out;
-}
-struct ASTNode* mtASTTokenCreateNode(struct Token token)
-{
-
-    struct ASTNode* out = malloc( sizeof(struct ASTNode) );
-    
-    out->childCount = 0;
-    out->childCapacity = mtASTInitialChildCapacity;
-    
-    out->children = malloc (sizeof(struct ASTNode*) * mtASTInitialChildCapacity);
-    out->token = token;
-
-    return out;
-}
-
-void mtASTFree(struct ASTNode* node)
-{
-    if (node == NULL) return;
-
-    // have to free the struct but also the rootNode->children array.
-    for (size_t i = 0; i < node->childCount; i++)
-    {
-        //call recursively
-        mtASTFree(node->children[i]);
-    }
-    free(node->children);
-    free(node);
-}
-
-struct Token mtParserGetToken(struct mtParserState* state)
-{
-    return state->tokens[state->currentToken];
-}
-//@brief Gets the token before the current one and returns it.
-struct Token mtParserGetLastToken(struct mtParserState* state)
-{
-    //returning state->tokens[-1] would be bad.
-    if (state->currentToken != 0)
-        return state->tokens[state->currentToken-1];
-    
-    return state->tokens[state->currentToken];
-}
-struct Token mtParserAdvance(struct mtParserState* state)
-{
-    return state->tokens[state->currentToken++];
-}
-bool mtParserCheck(struct mtParserState* state, enum TokenType type)
-{
-    if (state->tokens[state->currentToken].type == type )
-        return true;
-    return false;
-}
-
-// ____________________ Actual Parser ____________________
-
-
 /*
 *   block       = statments | expressions | function_def
 *   statement   = identifier {assign} expression 
@@ -485,12 +387,6 @@ struct ASTNode* parseBlock(struct mtParserState* state)
     struct ASTNode* child;
     while (!mtParserCheck(state, TokenType_NullTerminator))
     {
-/*
-        printf("parsing token: ");
-        mtPrintTokenString(mtParserGetToken(state));
-        printf(" on line %d", mtParserGetToken(state).line);
-        printf("\n");
-*/
         if ( (child = parseFunctionDef(state)) )
         {
             mtASTAddChildNode(block, child); 

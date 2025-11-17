@@ -3,7 +3,7 @@
 #define MT_NUMBER_H
 
 #include <types/mtType.h>
-#include <tokenizer/mtTokenization.h>
+#include <tokenizer/mtToken.h>
 
 struct mtNumber {
 	enum {
