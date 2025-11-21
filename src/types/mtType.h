@@ -2,7 +2,7 @@
 #ifndef MT_TYPE_H
 #define MT_TYPE_H
 
-#include <Mint/mtUtilities.h>
+#include <util/mtUtilities.h>
 #include <stdarg.h>
 
 struct Type {

@@ -1,3 +1,5 @@
+#ifndef mtGlobalTypes_h
+
 #include "mtType.h"
 
 #include "mtNumber.h"
@@ -8,8 +10,8 @@ enum GlobalTypeIndex {
    NumberTypeIndex
 };
 
-struct Type mtGlobalTypes[] = {
+static const struct Type mtGlobalTypes[] = {
     mtNumberType 
 };
 
-
+#endif

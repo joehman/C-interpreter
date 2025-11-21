@@ -1,6 +1,6 @@
-#include <Mint/mtTokenization.h>
-#include "mtNumber.h"
-#include "Mint/types/mtType.h"
+#include <tokenizer/mtToken.h>
+#include <types/mtNumber.h>
+#include <types/mtType.h>
 
 #include <math.h>
 #include <stdio.h>

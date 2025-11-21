@@ -1,22 +1,11 @@
 /*
-* Mint is an interpreter. Short for 'my interpreter'.
-* Functions will be prefixed with mt, short for Mint
-* -------- Syntax -----------
-*
-* newlines will end statements, like python.
-*
-* functions are called like this: func(args, moreargs)
-* strings start and end with ". 
-* 
-* Order for variable declaration will look like this:
-* Identifier = expression 
+* Mint is an interpreter. Short for 'my interpreter
 */
 
-#define mtImplementation
-#include "Mint/mtUtilities.h"
-#include "Mint/mtTokenization.h"
-#include "Mint/mtParser.h"
-#include "Mint/mtInterpreter.h"
+#include <tokenizer/mtTokenizer.h>
+#include <parser/mtParser.h>
+#include <parser/mtASTTree.h>
+#include <interpreter/mtInterpreter.h>
 
 #define mtVersion "0.3"
 
@@ -25,17 +14,22 @@ const struct TokenTypeRules rules = {
     .divisionChar           = '/',
     .multiplicationChar     = '*',
     .subtractionChar        = '-',
-    .powChar                = '^',
     .assignChar             = '=',
 
     .leftParentheses        = '(',
     .rightParentheses       = ')',
+    .leftBracket            = '{',
+    .rightBracket           = '}',
+
+    .commaChar              = ',',
 
     .endOfFileChar          = '\0',
     .endStatementChar       = '\n',
     .separatorChar          = ' ',
 
     .numbers = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'},
+    .functionKeyword = "func",
+    .endKeyword = "end"
 };
 
 void mtExecute(char* string)
@@ -45,26 +39,30 @@ void mtExecute(char* string)
         rules.divisionChar,
         rules.multiplicationChar,
         rules.subtractionChar,
-        rules.powChar,
 
         rules.leftParentheses,
         rules.rightParentheses,
+        rules.leftBracket,
+        rules.rightBracket,
+        rules.commaChar,
 
         rules.endOfFileChar,
         rules.endStatementChar,
         rules.separatorChar
     };
 
+    //TODO : make this token creation block into one function inside mtTokenization.h
+
     //get the number of tokens from fileString
     size_t tokenCount = 0; 
-    mtGetTokenCountFromString(string, &tokenCount, (char*) &separators[0], mtArraySize(separators));
+    mtTokenizerGetTokenCountFromString(string, &tokenCount, (char*) &separators[0], mtArraySize(separators));
 
     //allocate the array with that size
     struct Token *tokens = malloc(tokenCount * sizeof(struct Token));
     mtCreateTokens(tokens, tokenCount);
     
     //populate the tokens array
-    mtFindAllTokens(string, &tokens[0], tokenCount, (char*)&separators[0], mtArraySize(separators));    
+    mtTokenizerFindAllTokens(string, &tokens[0], tokenCount, (char*)&separators[0], mtArraySize(separators));    
 
     //remove all unneeded tokens, eg. empty space.
     const struct Token unneededTokens[] = {
@@ -73,8 +71,8 @@ void mtExecute(char* string)
     mtFilterTokens(&tokens[0], tokenCount, &unneededTokens[0], mtArraySize(unneededTokens));
 
     //set all token types, operators, numbers, identifiers etc.
-    mtSetTokenTypes(&tokens[0], tokenCount, rules);
-
+    mtTokenizerSetTokenTypes(&tokens[0], tokenCount, rules);
+   
     // run the parser, which creates an abstract syntax tree.
     struct ASTNode* rootNode = mtASTParseTokens(tokens, tokenCount);
 
@@ -85,16 +83,6 @@ void mtExecute(char* string)
         mtASTFree(rootNode);
     free(tokens);
 }
-
-#define mtTooManyArgs -1
-int mtCheckArgs(int argc, char* argv[])
-{
-    if (argc > 2)
-        return mtTooManyArgs;
-    
-    return mtSuccess;
-}
-
 
 int main(int argc, char* argv[])
 {
@@ -118,7 +106,7 @@ int main(int argc, char* argv[])
     }
 
     char *fileString = malloc(fileSize); 
-    if (mtLoadTextFromFile(path, fileString, fileSize) != mtSuccess)
+if (mtLoadTextFromFile(path, fileString, fileSize) != mtSuccess)
     {
         return mtFail;
     }
