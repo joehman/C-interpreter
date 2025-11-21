@@ -106,7 +106,7 @@ int main(int argc, char* argv[])
     }
 
     char *fileString = malloc(fileSize); 
-    if (mtLoadTextFromFile(path, fileString, fileSize) != mtSuccess)
+if (mtLoadTextFromFile(path, fileString, fileSize) != mtSuccess)
     {
         return mtFail;
     }

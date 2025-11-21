@@ -6,6 +6,7 @@
 #include <interpreter/mtExpression.h>
 #include <interpreter/mtFunction.h>
 
+
 void interpretBlock(struct ASTNode* node, struct Scope* parent)
 {
     if (node->childCount <= 0)
@@ -21,23 +22,27 @@ void interpretBlock(struct ASTNode* node, struct Scope* parent)
         
         struct ASTNode* currentNode = node->children[i];
       
-        if (currentNode->type == NodeType_BinaryOperator || currentNode->type == NodeType_FunctionCall)
-        {
-            expression = interpretExpression(currentNode, scope); 
-        }
-        if (currentNode->type == NodeType_Assignment)
-        {
-            interpretStatement(currentNode, scope); 
-        }
         if (currentNode->type == NodeType_FunctionDefinition)
         {
             interpretFunctionDef(currentNode, scope); 
+            continue;
         }
 
-        //temporary
-        if (expression != NULL)
+        if (currentNode->type == NodeType_Assignment)
         {
-            printf("%s\n", expression->type.str(expression->value));
+            interpretStatement(currentNode, scope); 
+            continue;
         }
+
+        if (currentNode->type == NodeType_BinaryOperator || currentNode->type == NodeType_FunctionCall)
+        {
+            expression = interpretExpression(currentNode, scope); 
+            if (expression)
+            {
+                printf("%s\n", expression->type.str(expression->value));
+            }
+            continue;
+        }
+
     }
 }

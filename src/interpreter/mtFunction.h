@@ -21,7 +21,7 @@ struct Function {
 };
 
 struct Function* getFunctionFromScope(struct Scope* scope, const char* key);
-struct Variable* interpretFunctionCall(struct ASTNode* node, struct Scope* scope);
+struct Variable* interpretFunctionCall(struct ASTNode* node, struct Scope* scope, bool* wasFunc);
 void interpretFunctionDef(struct ASTNode* node, struct Scope* scope);
 
 #endif

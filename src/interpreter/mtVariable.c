@@ -14,7 +14,7 @@ struct Variable* mtCreateVariable(struct Type type)
 
 struct Variable* getVariableFromScope(struct Scope* scope, const char* key)
 {
-    if (scope == NULL)
+    if (!scope)
     {
         return NULL;
     }

@@ -15,6 +15,7 @@ static void interpreterError(struct ASTNode* node, const char* fmt, ...)
             node->token.line 
     );
     vfprintf(stderr, fmt, args);
+    fprintf(stderr, "\n");
 
     if (fmt[strlen(fmt)] != '\n')
     {

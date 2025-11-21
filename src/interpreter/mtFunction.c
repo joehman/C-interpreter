@@ -48,8 +48,16 @@ struct Function* getFunctionFromScope(struct Scope* scope, const char* key)
     return NULL;
 }
 
-struct Variable* interpretFunctionCall(struct ASTNode* node, struct Scope* scope)
+struct Variable* interpretFunctionCall(struct ASTNode* node, struct Scope* scope, bool* wasFunc)
 {
+
+    *wasFunc = false; 
+    if (node->type != NodeType_FunctionCall)
+    {
+        return NULL;
+    }
+    *wasFunc = true;
+
     struct Token identifier = node->children[0]->token; 
     struct ASTNode* argumentList = node->children[1];
 
@@ -83,10 +91,8 @@ struct Variable* interpretFunctionCall(struct ASTNode* node, struct Scope* scope
     {
         struct Variable* argument = interpretExpression(argumentList->children[i], scope);
 
-
         if (!argument)
             return NULL;
-
         hashmap_put(arguments->variables, func->parameters[i].identifier, argument);   
     }
    
