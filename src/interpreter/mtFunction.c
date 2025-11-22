@@ -129,7 +129,7 @@ void interpretFunctionDef(struct ASTNode* node, struct Scope* scope)
     struct ASTNode* parameterList = node->children[1];
 
     out->parameterCount = parameterList->childCount;
-    out->parameters = malloc( sizeof(struct Parameter) * out->parameterCount);
+    out->parameters = malloc(sizeof(struct Parameter) * out->parameterCount);
     
     for (size_t i = 0; i < out->parameterCount; i++)
     {
@@ -141,9 +141,9 @@ void interpretFunctionDef(struct ASTNode* node, struct Scope* scope)
         mtGetTokenString(parameterNode->token, (char*) &tokenStr, tokenSize);
         out->parameters[i].identifier = strndup(tokenStr, tokenSize); 
         out->parameters[i].type = NULL;
-        struct ASTNode* block = node->children[2];
-        out->block = block; 
-        
-        hashmap_put(scope->functions, out->identifier, out);
     }
+    struct ASTNode* block = node->children[2];
+    out->block = block; 
+
+    hashmap_put(scope->functions, out->identifier, out);
 }
