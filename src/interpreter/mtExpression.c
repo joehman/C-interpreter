@@ -3,20 +3,20 @@
 #include "tokenizer/mtToken.h"
 
 #include <interpreter/mtFunction.h>
-#include <interpreter/mtVariable.h>
+#include <interpreter/mtObject.h>
 #include <interpreter/mtInterpreterError.h>
 #include <interpreter/mtScope.h>
 
 #include <malloc.h>
 #include <types/mtGlobalTypes.h>
 
-void interpretStatement(struct ASTNode* node, struct Scope* scope)
+void interpretStatement(struct ASTNode* node, struct mtScope* scope)
 {
     struct ASTNode* leftNode = node->children[0];
     struct ASTNode* rightNode = node->children[1];
 
-    struct Variable* left = interpretExpression(leftNode, scope);
-    struct Variable* right = interpretExpression(rightNode, scope);
+    struct mtObject* left = interpretExpression(leftNode, scope);
+    struct mtObject* right = interpretExpression(rightNode, scope);
 
     if (!right)
     {
@@ -30,17 +30,17 @@ void interpretStatement(struct ASTNode* node, struct Scope* scope)
         mtGetTokenString(leftNode->token, (char*)&nodeStr, mtArraySize(nodeStr));
 
         left = mtCreateVariable(right->type);
-        hashmap_put(scope->variables, nodeStr, left);
+        mtHashMapPut(scope->variables, nodeStr, left);
     }
 
     left->type.set(left->value, right->value);
 }
 
-struct Variable* intepretInteger(struct ASTNode* node)
+struct mtObject* intepretInteger(struct ASTNode* node)
 {
     if (node->token.type == TokenType_IntegerLiteral)
     {
-        struct Variable* out;
+        struct mtObject* out;
         out = mtCreateVariable(mtGlobalTypes[NumberTypeIndex]);
 
         struct mtNumber num;
@@ -52,11 +52,11 @@ struct Variable* intepretInteger(struct ASTNode* node)
     }
     return NULL;
 }
-struct Variable* interpretDecimal(struct ASTNode* node)
+struct mtObject* interpretDecimal(struct ASTNode* node)
 {
     if (node->token.type == TokenType_DecimalLiteral)    
     {
-        struct Variable* out;
+        struct mtObject* out;
         out = mtCreateVariable(mtGlobalTypes[NumberTypeIndex]);
 
         struct mtNumber num;
@@ -69,13 +69,13 @@ struct Variable* interpretDecimal(struct ASTNode* node)
     return NULL;
 }
 
-struct Variable* interpretIdentifier(struct ASTNode* node, struct Scope* scope, bool* wasIdentifier)
+struct mtObject* interpretIdentifier(struct ASTNode* node, struct mtScope* scope, bool* wasIdentifier)
 {
     *wasIdentifier = false;
     if (node->token.type == TokenType_Identifier)
     {
         *wasIdentifier = true; 
-        struct Variable* out = NULL;
+        struct mtObject* out = NULL;
         
         char str[node->token.size];
         mtGetTokenString(node->token, (char*)&str, node->token.size); 
@@ -88,7 +88,7 @@ struct Variable* interpretIdentifier(struct ASTNode* node, struct Scope* scope, 
 }
 
 // doesn't interpret identifiers 
-struct Variable* interpretLiterals(struct ASTNode* node, struct Scope* scope)
+struct mtObject* interpretLiterals(struct ASTNode* node, struct mtScope* scope)
 {
 #define Check(out, func)        \
         if ( (out = func) )     \
@@ -96,21 +96,21 @@ struct Variable* interpretLiterals(struct ASTNode* node, struct Scope* scope)
             return out;         \
         }                        
     
-    struct Variable* out = NULL;
+    struct mtObject* out = NULL;
     Check(out, intepretInteger(node));
     Check(out, interpretDecimal(node));
 
     return NULL;
 }
 
-struct Variable* interpretExpression(struct ASTNode* node, struct Scope* scope)
+struct mtObject* interpretExpression(struct ASTNode* node, struct mtScope* scope)
 {
 	if (node == NULL)
     {
         return NULL;
 	}
 
-    struct Variable* out = NULL;
+    struct mtObject* out = NULL;
     if ( (out = interpretLiterals(node, scope)) )
     {
         return out;
@@ -129,8 +129,8 @@ struct Variable* interpretExpression(struct ASTNode* node, struct Scope* scope)
     }
 
 
-    struct Variable* left = interpretExpression(node->children[0], scope);
-    struct Variable* right = interpretExpression(node->children[1], scope);
+    struct mtObject* left = interpretExpression(node->children[0], scope);
+    struct mtObject* right = interpretExpression(node->children[1], scope);
 
     if (!left)
     {

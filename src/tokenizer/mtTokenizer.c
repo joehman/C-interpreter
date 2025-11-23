@@ -1,17 +1,54 @@
 #include "mtTokenizer.h"
+#include <inttypes.h>
+
+struct Token* mtTokenize(char* str, struct TokenTypeRules rules, size_t* tokenCount)
+{
+    char separators[] = {
+        rules.additionChar,
+        rules.divisionChar,
+        rules.multiplicationChar,
+        rules.subtractionChar,
+        rules.assignChar,
+
+        rules.leftParentheses,
+        rules.rightParentheses,
+        rules.commaChar,
+
+        rules.endStatementChar,
+        rules.separatorChar,
+        rules.endOfFileChar
+    };
+
+    mtTokenizerGetTokenCountFromString(str, tokenCount, (char*) &separators[0], mtArraySize(separators));
+
+    //allocate the array with that size
+    struct Token *tokens = malloc( (*tokenCount) * sizeof(struct Token));
+    mtCreateTokens(tokens, *tokenCount);
+    
+    //populate the tokens array
+    mtTokenizerFindAllTokens(str, &tokens[0], *tokenCount, &separators[0], mtArraySize(separators));    
+
+    //remove all unneeded tokens 
+    const struct Token unneededTokens[] = {
+        mtCreateStringToken(&rules.separatorChar)
+    };
+    mtFilterTokens(&tokens[0], *tokenCount, &unneededTokens[0], mtArraySize(unneededTokens));
+
+    //set all token types, operators, numbers, identifiers etc.
+    mtTokenizerSetTokenTypes(&tokens[0], *tokenCount, rules);
+   
+    return tokens;
+}
 
 void mtTokenizerSetTokenType(struct Token* token, struct TokenTypeRules rules)
 {
-    bool isEmpty = (token->size == 0) || (token->string == NULL);
-    if (isEmpty) // no need to check for anything else if it's empty
+    if ((token->size == 0) || (token->string == NULL)) 
     {
         token->type = TokenType_Ignore;
         return;
     }
     
-    //surely there's some way to automate this?
-    bool isSingleCharacter = token->size == 1;
-    if (isSingleCharacter)
+    if (token->size == 1)
     {
         char character = token->string[0];
 
@@ -33,16 +70,6 @@ void mtTokenizerSetTokenType(struct Token* token, struct TokenTypeRules rules)
             return;
         }
 
-        if (character == rules.rightBracket)
-        {
-            token->type = TokenType_RightBracket;
-            return;
-        } else if (character == rules.leftBracket)
-        {
-            token->type = TokenType_LeftBracket;
-            return;
-        }
-    
         if (character == rules.leftParentheses)
         {
             token->type = TokenType_LeftParentheses;
@@ -118,52 +145,64 @@ void mtTokenizerSetTokenTypes(struct Token* tokens, size_t tokenCount, struct To
     }
 }
 
-void mtTokenizerFindToken(struct Token* token, char* position, size_t searchLength, char* separators, size_t separatorCount)
+//@brief Advances state past token
+void mtTokenizerStateAdvance(struct TokenizerState* state, struct Token* token)
 {
-    token->string = position;
+    if (!token)
+        return;
+    if (token->size <= 0)
+        return;
 
-    if (mtAnyOfN(&position[0], 1, separators, separatorCount))
+    state->position += token->size;
+    state->remainingLength -= token->size;
+    state->currentToken++;
+}
+
+void mtTokenizerFindToken(struct TokenizerState* state, char* separators, size_t separatorCount)
+{
+    struct Token* token = &state->tokens[state->currentToken];
+
+    token->string = state->position;
+
+    if (mtAnyOfN(&state->position[0], 1, separators, separatorCount))
     {
         token->size = 1;
+        mtTokenizerStateAdvance(state, token);
         return;
     }
     
     // this assumes the first token is not a separator, which is guarranteed by the check above.
-    for (int i = 0; i < searchLength; i++)
+    for (int i = 0; i < state->remainingLength; i++)
     {
         // check the character after this one
-        if (mtAnyOfN(&position[i+1], 1, separators, separatorCount))
+        if (mtAnyOfN(&state->position[i+1], 1, separators, separatorCount))
         {
             // if it is a separator, stop now so that we don't include it.
             // add 1 because i is an index and not a count.
             token->size = i+1;
+            token->line = state->line;
+
+            mtTokenizerStateAdvance(state, token);
+
+            if (token->size == 1 && token->string[0] == '\n')
+            {
+                state->line++;
+            }
+
             return;
         }
     }
-    return;
 }
 
 
 void mtTokenizerFindAllTokens(char* str, struct Token* tokens, size_t maxTokens, char* separators, size_t separatorCount)
 {
-    int line = 1;
-
-    char* ptr = str;
-    int remainingLength = strlen(str)+1;
+    struct TokenizerState state;
+    mtCreateTokenizerState(&state, tokens, maxTokens, str);
 
     for (size_t i = 0; i < maxTokens; i++) 
     {
-        mtTokenizerFindToken(&tokens[i], ptr, remainingLength, separators, separatorCount);
-
-        if (tokens[i].size == 1 && *tokens[i].string == '\n')
-        {
-            line += 1; 
-        }
-
-        tokens[i].line = line;
-
-        ptr += tokens[i].size;
-        remainingLength -= tokens[i].size;
+        mtTokenizerFindToken(&state, separators, separatorCount);
     }
 }
 
@@ -191,3 +230,15 @@ void mtTokenizerGetTokenCountFromString(char* str, size_t *count, char* separato
     *count = tokenCount;
 }
 
+void mtCreateTokenizerState(struct TokenizerState* state, struct Token* tokens, size_t tokenCount, char* str)
+{
+    state->tokens = tokens;
+    state->tokenSize = tokenCount;
+    state->currentToken = 0;
+
+    state->line = 1;
+    state->file = NULL;
+
+    state->remainingLength = strlen(str)+1;
+    state->position = str;
+}

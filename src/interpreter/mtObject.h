@@ -5,12 +5,12 @@
 #include <interpreter/mtScope.h>
 #include <types/mtType.h>
 
-struct Variable {
+struct mtObject {
     struct Type type; 
     void* value;
 };
 
-struct Variable* mtCreateVariable(struct Type type);
-struct Variable* getVariableFromScope(struct Scope* scope, const char* key);
+struct mtObject* mtCreateVariable(struct Type type);
+struct mtObject* getVariableFromScope(struct mtScope* scope, const char* key);
 
 #endif

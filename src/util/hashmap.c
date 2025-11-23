@@ -14,9 +14,9 @@ unsigned long hash(unsigned char *str)
     return hash;
 }
 
-struct HashMapEntry* create_hashmap_entry(const char* key, void* value)
+struct mtHashMapEntry* create_hashmap_entry(const char* key, void* value)
 {
-    struct HashMapEntry* entry = malloc(sizeof(struct HashMapEntry)); 
+    struct mtHashMapEntry* entry = malloc(sizeof(struct mtHashMapEntry)); 
 
     entry->key = strdup(key);
     entry->value = value; 
@@ -26,23 +26,23 @@ struct HashMapEntry* create_hashmap_entry(const char* key, void* value)
 
 // PUBLIC FUNCTIONS
 
-struct HashMap* hashmap_create(size_t initialSize)
+struct mtHashMap* mtHashMapCreate(size_t initialSize)
 {
-    struct HashMap* map = malloc(sizeof(struct HashMap));
+    struct mtHashMap* map = malloc(sizeof(struct mtHashMap));
     
-    map->buckets = calloc(initialSize, sizeof(struct HashMapEntry*));
+    map->buckets = calloc(initialSize, sizeof(struct mtHashMapEntry*));
     map->size = initialSize;
     map->count = 0;
 
     return map;
 }
 
-void hashmap_destroy(struct HashMap* map, void (*free_value)(void*))
+void mtHashMapDestroy(struct mtHashMap* map, void (*free_value)(void*))
 {
     for (size_t i = 0; i < map->size; i++) {
-        struct HashMapEntry *entry = map->buckets[i];
+        struct mtHashMapEntry *entry = map->buckets[i];
         while (entry) {
-            struct HashMapEntry *tmp = entry;
+            struct mtHashMapEntry *tmp = entry;
             entry = entry->next;
             free((void*)tmp->key);
             if (free_value)
@@ -54,11 +54,11 @@ void hashmap_destroy(struct HashMap* map, void (*free_value)(void*))
     free(map);
 }
 
-void hashmap_put(struct HashMap* map, const char* key, void* value)
+void mtHashMapPut(struct mtHashMap* map, const char* key, void* value)
 {
     unsigned int index = hash((unsigned char*)key) % map->size;
     
-    struct HashMapEntry* entry = map->buckets[index];
+    struct mtHashMapEntry* entry = map->buckets[index];
 
     while (entry) {
         if (strcmp(entry->key, key) == 0) {
@@ -69,18 +69,18 @@ void hashmap_put(struct HashMap* map, const char* key, void* value)
     }
 
     // Prepend new entry
-    struct HashMapEntry *new_entry = create_hashmap_entry(key, value);
+    struct mtHashMapEntry *new_entry = create_hashmap_entry(key, value);
     new_entry->next = map->buckets[index];
     map->buckets[index] = new_entry;
     map->count++;
 }
 
-void hashmap_remove(struct HashMap* map, const char* key)
+void mtHashMapRemove(struct mtHashMap* map, const char* key)
 {
     unsigned int index = hash((unsigned char*)key) % map->size;
 
-    struct HashMapEntry* entry;
-    struct HashMapEntry* prev = NULL;
+    struct mtHashMapEntry* entry;
+    struct mtHashMapEntry* prev = NULL;
 
     while (entry) {
         if (strcmp(entry->key, key) == 0) {
@@ -99,11 +99,11 @@ void hashmap_remove(struct HashMap* map, const char* key)
     }
 }
 
-void* hashmap_get(struct HashMap* map, const char* key)
+void* mtHashMapGet(struct mtHashMap* map, const char* key)
 {
     unsigned int index = hash((unsigned char*)key) % map->size;
 
-    struct HashMapEntry*entry = map->buckets[index];
+    struct mtHashMapEntry*entry = map->buckets[index];
 
     while (entry) {
         if (strcmp(entry->key, key) == 0)

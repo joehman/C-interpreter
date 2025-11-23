@@ -4,12 +4,12 @@
 
 #include <util/hashmap.h>
 
-struct Scope {
-    struct Scope* parent;    
-    struct HashMap* variables;
-    struct HashMap* functions;
+struct mtScope {
+    struct mtScope* parent;    
+    struct mtHashMap* variables;
+    struct mtHashMap* functions;
 };
 
-struct Scope* mtCreateScope();
+struct mtScope* mtCreateScope();
 
 #endif

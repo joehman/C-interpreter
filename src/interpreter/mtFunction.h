@@ -11,7 +11,7 @@ struct Parameter {
     struct Type* type; // could be NULL
 };
 
-struct Function {
+struct mtFunction {
     struct ASTNode* block;
 
     const char* identifier;
@@ -20,8 +20,8 @@ struct Function {
     struct Parameter* parameters;
 };
 
-struct Function* getFunctionFromScope(struct Scope* scope, const char* key);
-struct Variable* interpretFunctionCall(struct ASTNode* node, struct Scope* scope, bool* wasFunc);
-void interpretFunctionDef(struct ASTNode* node, struct Scope* scope);
+struct mtFunction* getFunctionFromScope(struct mtScope* scope, const char* key);
+struct mtObject* interpretFunctionCall(struct ASTNode* node, struct mtScope* scope, bool* wasFunc);
+void interpretFunctionDef(struct ASTNode* node, struct mtScope* scope);
 
 #endif

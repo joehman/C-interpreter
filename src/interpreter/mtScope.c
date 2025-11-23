@@ -1,12 +1,12 @@
 #include "mtScope.h"
 
-struct Scope* mtCreateScope()
+struct mtScope* mtCreateScope()
 {
-    struct Scope* scope = malloc(sizeof(struct Scope));
+    struct mtScope* scope = malloc(sizeof(struct mtScope));
 
     scope->parent = NULL;
-    scope->variables = hashmap_create(2);
-    scope->functions = hashmap_create(2);
+    scope->variables = mtHashMapCreate(2);
+    scope->functions = mtHashMapCreate(2);
 
     return scope;
 }

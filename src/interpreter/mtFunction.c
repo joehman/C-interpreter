@@ -24,19 +24,19 @@ static void interpreterError(struct ASTNode* node, const char* fmt, ...)
     }
 }
 
-struct Function* getFunctionFromScope(struct Scope* scope, const char* key)
+struct mtFunction* getFunctionFromScope(struct mtScope* scope, const char* key)
 {
     if (scope == NULL)
     {
         return NULL;
     }
     
-    struct Function* out = NULL;
+    struct mtFunction* out = NULL;
     
-    struct Scope* currentScope = scope;
+    struct mtScope* currentScope = scope;
     while (currentScope)
     {
-        if ( (out = hashmap_get(scope->functions, key)) )
+        if ( (out = mtHashMapGet(scope->functions, key)) )
         {
             return out;
         }
@@ -48,7 +48,7 @@ struct Function* getFunctionFromScope(struct Scope* scope, const char* key)
     return NULL;
 }
 
-struct Variable* interpretFunctionCall(struct ASTNode* node, struct Scope* scope, bool* wasFunc)
+struct mtObject* interpretFunctionCall(struct ASTNode* node, struct mtScope* scope, bool* wasFunc)
 {
 
     *wasFunc = false; 
@@ -63,7 +63,7 @@ struct Variable* interpretFunctionCall(struct ASTNode* node, struct Scope* scope
 
     char tokenStr[identifier.size];
     mtGetTokenString(identifier, (char*)&tokenStr, identifier.size);
-    struct Function* func = getFunctionFromScope(scope, tokenStr);
+    struct mtFunction* func = getFunctionFromScope(scope, tokenStr);
 
     if (!func)
     {
@@ -84,16 +84,16 @@ struct Variable* interpretFunctionCall(struct ASTNode* node, struct Scope* scope
         return NULL;
     }
 
-    struct Scope* arguments = mtCreateScope();
+    struct mtScope* arguments = mtCreateScope();
     arguments->parent = scope; 
 
     for (size_t i = 0; i < argumentList->childCount; i++)
     {
-        struct Variable* argument = interpretExpression(argumentList->children[i], scope);
+        struct mtObject* argument = interpretExpression(argumentList->children[i], scope);
 
         if (!argument)
             return NULL;
-        hashmap_put(arguments->variables, func->parameters[i].identifier, argument);   
+        mtHashMapPut(arguments->variables, func->parameters[i].identifier, argument);   
     }
    
     interpretBlock(func->block, arguments);
@@ -101,7 +101,7 @@ struct Variable* interpretFunctionCall(struct ASTNode* node, struct Scope* scope
     return NULL;
 }
 
-void interpretFunctionDef(struct ASTNode* node, struct Scope* scope)
+void interpretFunctionDef(struct ASTNode* node, struct mtScope* scope)
 {
     // children of the function_def node:
     // 1st      child: identifier
@@ -115,7 +115,7 @@ void interpretFunctionDef(struct ASTNode* node, struct Scope* scope)
         return;
     }
 
-    struct Function* out = malloc(sizeof(struct Function));
+    struct mtFunction* out = malloc(sizeof(struct mtFunction));
 
     struct Token identifier = node->children[0]->token;
     if (identifier.type != TokenType_Identifier)
@@ -145,5 +145,5 @@ void interpretFunctionDef(struct ASTNode* node, struct Scope* scope)
     struct ASTNode* block = node->children[2];
     out->block = block; 
 
-    hashmap_put(scope->functions, out->identifier, out);
+    mtHashMapPut(scope->functions, out->identifier, out);
 }

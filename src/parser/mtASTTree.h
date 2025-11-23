@@ -35,7 +35,7 @@ struct ASTNode {
 
 //@brief Adds child as a node to parent
 //
-//@returns Its index.
+//@returns The child's index.
 int mtASTAddChildNode(struct ASTNode* parent, struct ASTNode* child);
 
 //@brief adds an empty node to parent and returns it.

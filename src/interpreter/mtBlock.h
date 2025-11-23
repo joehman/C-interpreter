@@ -5,6 +5,6 @@
 #include <parser/mtASTTree.h>
 #include <interpreter/mtScope.h>
 
-void interpretBlock(struct ASTNode* node, struct Scope* parent);
+void interpretBlock(struct ASTNode* node, struct mtScope* parent);
 
 #endif
