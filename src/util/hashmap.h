@@ -3,28 +3,28 @@
 
 #include <stdlib.h> // for size_t
 
-struct HashMapEntry {
+struct mtHashMapEntry {
     const char* key;
     void* value;
 
-    struct HashMapEntry* next;
+    struct mtHashMapEntry* next;
 };
 
-struct HashMap {
-    struct HashMapEntry **buckets;
+struct mtHashMap {
+    struct mtHashMapEntry **buckets;
 
     size_t size;
     size_t count;    
 };
 
 
-struct HashMap* hashmap_create(size_t initialSize);
-void hashmap_destroy(struct HashMap* map, void (*free_value)(void*));
+struct mtHashMap* mtHashMapCreate(size_t initialSize);
+void mtHashMapDestroy(struct mtHashMap* map, void (*free_value)(void*));
 
-void hashmap_put(struct HashMap* map, const char* key, void* value);
-void hashmap_remove(struct HashMap* map, const char* key);
+void mtHashMapPut(struct mtHashMap* map, const char* key, void* value);
+void mtHashMapRemove(struct mtHashMap* map, const char* key);
 
 //@returns the value of the key-value pair
-void* hashmap_get(struct HashMap* map, const char* key);
+void* mtHashMapGet(struct mtHashMap* map, const char* key);
 
 #endif // HASHMAP_H

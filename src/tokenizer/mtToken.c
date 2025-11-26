@@ -63,9 +63,15 @@ void mtFilterTokens(struct Token* unFilteredTokens, size_t unFilteredTokenCount,
         {
             shortenAmount++;
         }
-
-        if (unFilteredTokens[i].string[0] == '\0')
-            break;
+    
+        char* str;
+        if ((str = unFilteredTokens[i].string) && unFilteredTokens[i].size > 0)
+        {
+            if (str[0] == '\0')
+            {
+                break;
+            }
+        }
     }
 
     memcpy(unFilteredTokens, newTokenList, unFilteredTokenCount * sizeof(struct Token));
@@ -111,7 +117,7 @@ void mtPrintTokenString(struct Token token)
 
 void mtPrintTokenType(struct Token token)
 {
-     printf("%d, ", token.type);
+     printf("%d", token.type);
 }
 
 void mtPrintTokenTypes(struct Token* tokens, size_t tokenCount)
@@ -119,11 +125,6 @@ void mtPrintTokenTypes(struct Token* tokens, size_t tokenCount)
     for (size_t i = 0; i < tokenCount; i++)
     {
         mtPrintTokenType(tokens[i]);
-        if (tokens[i].type == TokenType_NullTerminator)
-        {
-            printf("\n");
-            return;
-        }
     }
     printf("\n");
 }

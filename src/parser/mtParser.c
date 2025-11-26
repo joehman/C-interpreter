@@ -246,7 +246,6 @@ struct ASTNode* parseParams(struct mtParserState* state)
 
 struct ASTNode* parseFunctionDef(struct mtParserState* state)
 {
-
     while (mtParserCheck(state, TokenType_EndOfStatement))
     {
         mtParserAdvance(state);

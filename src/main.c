@@ -18,8 +18,6 @@ const struct TokenTypeRules rules = {
 
     .leftParentheses        = '(',
     .rightParentheses       = ')',
-    .leftBracket            = '{',
-    .rightBracket           = '}',
 
     .commaChar              = ',',
 
@@ -34,53 +32,17 @@ const struct TokenTypeRules rules = {
 
 void mtExecute(char* string)
 {
-    const char separators[] = {
-        rules.additionChar,
-        rules.divisionChar,
-        rules.multiplicationChar,
-        rules.subtractionChar,
-
-        rules.leftParentheses,
-        rules.rightParentheses,
-        rules.leftBracket,
-        rules.rightBracket,
-        rules.commaChar,
-
-        rules.endOfFileChar,
-        rules.endStatementChar,
-        rules.separatorChar
-    };
-
-    //TODO : make this token creation block into one function inside mtTokenization.h
-
-    //get the number of tokens from fileString
     size_t tokenCount = 0; 
-    mtTokenizerGetTokenCountFromString(string, &tokenCount, (char*) &separators[0], mtArraySize(separators));
+    struct Token* tokens = mtTokenize(string, rules, &tokenCount);
 
-    //allocate the array with that size
-    struct Token *tokens = malloc(tokenCount * sizeof(struct Token));
-    mtCreateTokens(tokens, tokenCount);
-    
-    //populate the tokens array
-    mtTokenizerFindAllTokens(string, &tokens[0], tokenCount, (char*)&separators[0], mtArraySize(separators));    
-
-    //remove all unneeded tokens, eg. empty space.
-    const struct Token unneededTokens[] = {
-        mtCreateStringToken(&rules.separatorChar)
-    };
-    mtFilterTokens(&tokens[0], tokenCount, &unneededTokens[0], mtArraySize(unneededTokens));
-
-    //set all token types, operators, numbers, identifiers etc.
-    mtTokenizerSetTokenTypes(&tokens[0], tokenCount, rules);
-   
     // run the parser, which creates an abstract syntax tree.
     struct ASTNode* rootNode = mtASTParseTokens(tokens, tokenCount);
 
     if (rootNode != NULL)
+    {
         mtInterpret(rootNode);
-
-    if (rootNode != NULL) 
         mtASTFree(rootNode);
+    }
     free(tokens);
 }
 
@@ -106,7 +68,7 @@ int main(int argc, char* argv[])
     }
 
     char *fileString = malloc(fileSize); 
-if (mtLoadTextFromFile(path, fileString, fileSize) != mtSuccess)
+    if (mtLoadTextFromFile(path, fileString, fileSize) != mtSuccess)
     {
         return mtFail;
     }

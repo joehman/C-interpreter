@@ -2,23 +2,22 @@
 #include "mtBlock.h"
 
 #include <types/mtType.h>
-#include <interpreter/mtVariable.h>
+#include <interpreter/mtObject.h>
 #include <interpreter/mtExpression.h>
 #include <interpreter/mtFunction.h>
 
-
-void interpretBlock(struct ASTNode* node, struct Scope* parent)
+void interpretBlock(struct ASTNode* node, struct mtScope* parent)
 {
     if (node->childCount <= 0)
     {
         return;
     }
 
-    struct Scope* scope = mtCreateScope(); 
+    struct mtScope* scope = mtCreateScope(); 
     scope->parent = parent;
     for (size_t i = 0; i < node->childCount; i++) 
     {
-        struct Variable* expression = NULL;
+        struct mtObject* expression = NULL;
         
         struct ASTNode* currentNode = node->children[i];
       
