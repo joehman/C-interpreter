@@ -4,6 +4,9 @@
 
 #include "mtHashmap.h"
 
+// totally arbitrary
+#define mtScopeDefaultSize 8
+
 struct mtScope {
     struct mtScope* parent;    
     struct mtHashMap* variables;

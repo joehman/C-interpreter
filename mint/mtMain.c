@@ -4,6 +4,11 @@
 
 #include <Mint.h>
 
+#include "mtToken.h"
+#include "mtTokenizer.h"
+#include "mtParser.h"
+#include "mtInterpreter.h"
+
 #define mtVersion "0.3"
 
 const struct TokenTypeRules rules = {
