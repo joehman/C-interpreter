@@ -1,5 +1,6 @@
-#include "mtTokenizer.h"
-#include "_mtTokenizer.h"
+#include "internal/mtToken.h"
+#include "internal/mtTokenizer.h"
+#include "mtUtilities.h"
 
 #include <inttypes.h>
 

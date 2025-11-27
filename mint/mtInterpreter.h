@@ -10,7 +10,5 @@
 #include "mtHashmap.h"
 #include "mtAST.h"
 
-#include <types/mtGlobalTypes.h>
-
 void mtInterpret(struct ASTNode* node);
 #endif

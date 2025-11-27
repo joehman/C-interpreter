@@ -1,6 +1,10 @@
-#include <tokenizer/mtToken.h>
-#include <types/mtNumber.h>
-#include <types/mtType.h>
+
+
+#include "mtNumberObject.h"
+#include "mtUtilities.h"
+#include "mtTypeError.h"
+
+#include "internal/mtToken.h"
 
 #include <math.h>
 #include <stdio.h>

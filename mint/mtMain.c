@@ -8,6 +8,7 @@
 #include "mtTokenizer.h"
 #include "mtParser.h"
 #include "mtInterpreter.h"
+#include "mtUtilities.h"
 
 #define mtVersion "0.3"
 

@@ -1,5 +1,6 @@
 
-#include "mtParser.h"
+#include "internal/mtParser.h"
+#include "internal/mtAST.h"
 
 // ___________ Helper functions ______________
 
@@ -127,6 +128,7 @@ struct ASTNode* parseTerm(struct mtParserState* state)
 
     return left;
 }
+
 struct ASTNode* parseExpression(struct mtParserState* state)
 {
     struct ASTNode* left = parseTerm(state);
@@ -367,7 +369,9 @@ struct ASTNode* parseFunctionCall(struct mtParserState* state)
         return NULL; 
     }
 
-    struct ASTNode* functionCall = mtASTCreateNode();
+    // the token functionCall stores isn't used by the interpreter
+    // it exists mainly for debugging
+    struct ASTNode* functionCall = mtASTTokenCreateNode(identifier);
     functionCall->type = NodeType_FunctionCall;
    
     mtASTAddChildNode(functionCall, mtASTTokenCreateNode(identifier));

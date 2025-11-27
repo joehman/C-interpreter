@@ -1,5 +1,5 @@
 
-#include "mtParserState.h"
+#include "internal/mtParserState.h"
 
 struct Token mtParserGetToken(struct mtParserState* state)
 {

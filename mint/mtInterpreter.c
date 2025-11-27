@@ -1,7 +1,6 @@
 #include "mtInterpreter.h"
 
-#include <interpreter/mtBlock.h>
-
+#include "mtBlock.h"
 
 void mtInterpret(struct ASTNode* node)
 {

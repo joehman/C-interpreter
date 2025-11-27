@@ -25,4 +25,5 @@ struct mtObject {
 
 struct mtObject* mtCreateVariable(struct Type type);
 
+
 #endif

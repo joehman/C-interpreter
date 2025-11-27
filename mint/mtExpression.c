@@ -7,6 +7,8 @@
 #include "mtInterpreterError.h"
 #include "mtScope.h"
 
+#include "mtNumberObject.h"
+
 #include <Mint.h>
 
 #include "mtUtilities.h"
@@ -42,7 +44,7 @@ struct mtObject* intepretInteger(struct ASTNode* node)
     if (node->token.type == TokenType_IntegerLiteral)
     {
         struct mtObject* out;
-        out = mtCreateVariable(mtGlobalTypes[NumberTypeIndex]);
+        out = mtCreateVariable(mtNumberType);
 
         struct mtNumber num;
         num.type = INTEGER;
@@ -58,7 +60,7 @@ struct mtObject* interpretDecimal(struct ASTNode* node)
     if (node->token.type == TokenType_DecimalLiteral)    
     {
         struct mtObject* out;
-        out = mtCreateVariable(mtGlobalTypes[NumberTypeIndex]);
+        out = mtCreateVariable(mtNumberType);
 
         struct mtNumber num;
         num.type = DECIMAL;
@@ -81,7 +83,7 @@ struct mtObject* interpretIdentifier(struct ASTNode* node, struct mtScope* scope
         char str[node->token.size];
         mtGetTokenString(node->token, (char*)&str, node->token.size); 
        
-        out = getVariableFromScope(scope, str); 
+        out = getObjectFromScope(scope, str); 
 
         return out;
     }

@@ -2,12 +2,8 @@
 #include "mtFunction.h"
 #include <stdarg.h>
 
-#include <util/mtUtilities.h>
-
-#include <interpreter/mtScope.h>
-#include <interpreter/mtExpression.h>
-#include <interpreter/mtBlock.h>
-
+#include "mtBlock.h"
+#include "mtExpression.h"
 
 static void interpreterError(struct ASTNode* node, const char* fmt, ...)
 {
@@ -24,11 +20,8 @@ static void interpreterError(struct ASTNode* node, const char* fmt, ...)
     }
 }
 
-
-
 struct mtObject* interpretFunctionCall(struct ASTNode* node, struct mtScope* scope, bool* wasFunc)
 {
-
     *wasFunc = false; 
     if (node->type != NodeType_FunctionCall)
     {
@@ -53,11 +46,15 @@ struct mtObject* interpretFunctionCall(struct ASTNode* node, struct mtScope* sco
     {
         if (argumentList->childCount > func->parameterCount)
         {
-            interpreterError(node, "Too many arguments to function, expected %d arguments!", func->parameterCount);
+            interpreterError(node, 
+                             "Too many arguments to function \"%s\", expected %d arguments!", 
+                             tokenStr, func->parameterCount);
         }
         if (argumentList->childCount < func->parameterCount)
         {
-            interpreterError(node, "Too few arguments to function, expected %d arguments!", func->parameterCount);
+            interpreterError(node, 
+                             "Too few arguments to function \"%s\", expected %d arguments!", 
+                             tokenStr, func->parameterCount);
         }
         return NULL;
     }

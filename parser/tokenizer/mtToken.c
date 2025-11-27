@@ -1,5 +1,5 @@
 
-#include "mtToken.h"
+#include "internal/mtToken.h"
 
 
 int mtTokenCmp(struct Token t1, struct Token t2)

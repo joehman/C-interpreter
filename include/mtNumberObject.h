@@ -2,8 +2,7 @@
 #ifndef MT_NUMBER_H
 #define MT_NUMBER_H
 
-#include <Mint.h>
-#include <tokenizer/mtToken.h>
+#include "internal/mtToken.h"
 
 struct mtNumber {
 	enum {

@@ -18,5 +18,5 @@
 #include <mtObject.h>
 #include <mtScope.h>
 #include <mtHashmap.h>
-
+#include <mtNumberObject.h>
 #endif
