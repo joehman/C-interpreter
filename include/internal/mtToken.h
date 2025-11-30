@@ -2,7 +2,7 @@
 #ifndef mtToken_h
 #define mtToken_h
 
-#include <Mint.h>
+#include "mtUtilities.h"
 
 enum TokenType {
     TokenType_Ignore,

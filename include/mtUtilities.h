@@ -89,6 +89,27 @@ bool mtAnyOf(char* string, char* set, size_t setSize);
 //@returns true if the any of them were present, false if not.
 bool mtAnyOfN(char* string, size_t stringSize, char* set, size_t setSize);
 
+//@brief Checks if string matches any of the strings in set
+//
+//@param string         the string to check, a null-terminated string
+//
+//@param set            the strings to check for, an array of null-terminated strings
+//@param setSize        the length of the set 
+//
+//@returns true if the any of them were present, false if not.
+bool mtAnyOfStr(char* string, char** set, size_t setSize);
+
+//@brief Checks if string matches any of the strings in set
+//
+//@param string         the string to check, not necessarily null-terminated 
+//@param stringSize     the length of the string
+//
+//@param set            the strings to check for, an array of null-terminated strings
+//@param setSize        the length of the set 
+//
+//@returns true if the any of them were present, false if not.
+bool mtAnyOfStrN(char* string, size_t stringSize, char** set, size_t setSize);
+
 //@brief Checks if any of the individual chars in string are not in set
 //
 //@param string         the string to check

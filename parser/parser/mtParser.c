@@ -350,9 +350,9 @@ struct ASTNode* parseFunctionCall(struct mtParserState* state)
 
     if (mtParserCheck(state, TokenType_Identifier))
     {
-        state->currentToken = startToken;
         identifier = mtParserGetToken(state);
     } else {
+        state->currentToken = startToken;
         return NULL;
     }
 

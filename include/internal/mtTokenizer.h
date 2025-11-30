@@ -53,6 +53,18 @@ struct TokenizerState
     const char* file;
 };
 
+struct SeparatorChars {
+    // does not include a null terminator
+    // array of chars
+    size_t singleCharSeparatorCount;
+    char* singleCharSeparators;
+
+    // includes a null-terminator
+    // array of strings
+    size_t multipleCharSeparatorCount;
+    char** multipleCharSeparators;
+};
+
 //@brief Tokenizes the inputted string
 //
 //@params str a null terminated string
@@ -99,7 +111,7 @@ void mtTokenizerGetTokenCountFromString(char* str, size_t *count, char* separato
 // @param searchLength defines how far forward from char* position we should search.
 // @param separators an array of chars which define what characters should separate tokens.
 // @param separatorCount the number of elements in char* separators.
-void mtTokenizerFindToken(struct TokenizerState* state, char* separators, size_t separatorCount);
+void mtTokenizerFindToken(struct TokenizerState* state, struct SeparatorChars separators);
 
 //@brief Finds all tokens in char* str then writes them to struct Token* tokens.
 //
@@ -110,8 +122,9 @@ void mtTokenizerFindToken(struct TokenizerState* state, char* separators, size_t
 //
 //@param separators an array of chars which define what characters should separate tokens.
 //@param separatorCount the number of elements in the separators array.
-void mtTokenizerFindAllTokens(char* str, struct Token* tokens, size_t maxTokens, char* separators, size_t separatorCount);
+void mtTokenizerFindAllTokens(char* str, struct Token* tokens, size_t maxTokens, struct SeparatorChars separators); 
 
 //@brief Creates a TokenizerState
 void mtCreateTokenizerState(struct TokenizerState* state, struct Token* tokens, size_t tokenCount, char* str);
+
 #endif //mtTokenization_h

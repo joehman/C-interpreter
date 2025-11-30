@@ -1,7 +1,6 @@
 
 #include "internal/mtToken.h"
 
-
 int mtTokenCmp(struct Token t1, struct Token t2)
 {
     // either of the strings being null would be fine,

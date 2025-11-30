@@ -166,3 +166,29 @@ int mtWhichOf(char character, char* set, size_t setSize)
     }
     return mtFail;
 }
+
+
+bool mtAnyOfStr(char* string, char** set, size_t setSize)
+{
+    for (size_t i = 0; i < setSize; i++)
+    {
+        if (strcmp(string, set[i]) == 0)
+            return true;
+    }
+    return false;
+}
+
+bool mtAnyOfStrN(char* string, size_t stringSize, char** set, size_t setSize)
+{
+    char str[stringSize+1];
+    memcpy(&str, string, stringSize);
+    str[stringSize] = '\0';
+
+    for (size_t i = 0; i < setSize; i++)
+    {
+        if (strcmp(str, set[i]) == 0)
+            return true;
+    }
+
+    return false;
+}

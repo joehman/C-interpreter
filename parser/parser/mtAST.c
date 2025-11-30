@@ -1,6 +1,6 @@
 #include "internal/mtAST.h"
 
-#define mtASTInitialChildCapacity 2
+
 struct ASTNode* mtASTAddNode(struct ASTNode* parent)
 {
     if (parent->childCount >= parent->childCapacity)

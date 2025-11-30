@@ -5,6 +5,8 @@
 #include <Mint.h>
 #include "mtToken.h"
 
+#define mtASTInitialChildCapacity 2
+
 enum NodeType {
     NodeType_None,
 
