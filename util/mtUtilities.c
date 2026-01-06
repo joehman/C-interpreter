@@ -54,7 +54,7 @@ int mtOpenFile(char* path, FILE** fileptr)
 
     *fileptr = fopen(path, "r");
     
-    if (fileptr == NULL)
+    if (*fileptr == NULL)
     {
         return mtFailOpenFile;
     }

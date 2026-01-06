@@ -16,12 +16,18 @@ struct mtNumber {
 	};
 };
 
+
+
 void numberSet(void* a, void* b);
 
 void* numberAdd(void* a, void* b);
 void* numberSub(void* a, void* b);
 void* numberDiv(void* a, void* b);
 void* numberMul(void* a, void* b);
+
+bool mtNumberIsEqual    (void* a, void* b);
+bool mtNumberIsGreater  (void* a, void* b);
+bool mtNumberIsLesser   (void* a, void* b);
 
 char* numberStr(void* a);
 
@@ -38,7 +44,11 @@ static const struct Type mtNumberType = {
     .mul = &numberMul,
     .div = &numberDiv,
 
-    .str = &numberStr
+    .str = &numberStr,
+
+    .isGreater = mtNumberIsGreater,
+    .isLesser = mtNumberIsLesser,
+    .isEqual = mtNumberIsEqual
 };
 
 #endif // MT_NUMBER_H

@@ -3,8 +3,10 @@
 
 #include <Mint.h>
 
+#include "mtAST.h"
 #include "mtExpression.h"
 #include "mtFunction.h"
+#include "mtIfStatement.h"
 
 void interpretBlock(struct ASTNode* node, struct mtScope* parent)
 {
@@ -21,27 +23,29 @@ void interpretBlock(struct ASTNode* node, struct mtScope* parent)
         
         struct ASTNode* currentNode = node->children[i];
       
-        if (currentNode->type == NodeType_FunctionDefinition)
+        switch(currentNode->type)
         {
-            interpretFunctionDef(currentNode, scope); 
-            continue;
+            case NodeType_IfStatement:
+                interpretIfStatement(currentNode, scope);
+                break;
+            case NodeType_FunctionDefinition:
+                interpretFunctionDef(currentNode, scope);
+                break;
+            case NodeType_Assignment:
+                interpretStatement(currentNode, scope);
+                break;
+            
+            case NodeType_BinaryOperator:
+            case NodeType_FunctionCall:
+                expression = interpretExpression(currentNode, scope); 
+                if (expression)
+                {
+                    printf("%s\n", expression->type.str(expression->data));
+                }
+                break;
+            
+            default:
+                break;
         }
-
-        if (currentNode->type == NodeType_Assignment)
-        {
-            interpretStatement(currentNode, scope); 
-            continue;
-        }
-
-        if (currentNode->type == NodeType_BinaryOperator || currentNode->type == NodeType_FunctionCall)
-        {
-            expression = interpretExpression(currentNode, scope); 
-            if (expression)
-            {
-                printf("%s\n", expression->type.str(expression->value));
-            }
-            continue;
-        }
-
     }
 }

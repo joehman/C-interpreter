@@ -15,7 +15,16 @@ enum NodeType {
     NodeType_Number,
     NodeType_Identifier,
     NodeType_Block,
+    
+    NodeType_GreaterThan,
+    NodeType_LesserThan,
+    NodeType_GreaterThanOrEqual,
+    NodeType_LesserThanOrEqual,
 
+    NodeType_IsEqual,
+    NodeType_IsNotEqual,
+
+    NodeType_IfStatement,
     NodeType_FunctionDefinition,
     NodeType_FunctionCall,
     NodeType_ParameterList, // not an actual list

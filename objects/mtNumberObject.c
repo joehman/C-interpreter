@@ -135,6 +135,56 @@ char* numberStr(void* a)
     return NULL;
 }
 
+bool mtNumberIsEqual (void* a, void* b)
+{
+	struct mtNumber* numA = (struct mtNumber*)a;
+	struct mtNumber* numB = (struct mtNumber*)b;
+
+	if (numA->type == DECIMAL || numB->type == DECIMAL)
+	{
+		double a = (numA->type == DECIMAL) ? numA->decimal : numA->integer; 
+		double b = (numB->type == DECIMAL) ? numB->decimal : numB->integer;
+
+        return a == b;
+	} else {
+        return numA->integer == numB->integer; 	
+    }
+
+	return false;
+}
+
+bool mtNumberIsGreater (void* a, void* b)
+{
+	struct mtNumber* numA = (struct mtNumber*)a;
+	struct mtNumber* numB = (struct mtNumber*)b;
+    
+    if (numA->type == DECIMAL || numB->type == DECIMAL)
+	{
+		double a = (numA->type == DECIMAL) ? numA->decimal : numA->integer; 
+		double b = (numB->type == DECIMAL) ? numB->decimal : numB->integer;
+
+        return a > b;
+	} else {
+        return numA->integer > numB->integer; 	
+    }
+}
+
+bool mtNumberIsLesser (void* a, void* b)
+{
+	struct mtNumber* numA = (struct mtNumber*)a;
+	struct mtNumber* numB = (struct mtNumber*)b;
+
+    if (numA->type == DECIMAL || numB->type == DECIMAL)
+	{
+		double a = (numA->type == DECIMAL) ? numA->decimal : numA->integer; 
+		double b = (numB->type == DECIMAL) ? numB->decimal : numB->integer;
+
+        return a > b;
+	} else {
+        return numA->integer > numB->integer; 	
+    }
+}
+
 float mtInterpretDecimal(struct Token* token)
 {
 	if (token == NULL)

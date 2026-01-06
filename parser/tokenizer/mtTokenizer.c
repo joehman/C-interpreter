@@ -4,8 +4,6 @@
 
 #include <inttypes.h>
 
-
-
 struct Token* mtTokenize(char* str, struct TokenTypeRules rules, size_t* tokenCount)
 {
     char separators[] = {
@@ -14,6 +12,8 @@ struct Token* mtTokenize(char* str, struct TokenTypeRules rules, size_t* tokenCo
         rules.multiplicationChar,
         rules.subtractionChar,
         rules.assignChar,
+        rules.greaterThanChar,
+        rules.lesserThanChar,
 
         rules.leftParentheses,
         rules.rightParentheses,
@@ -45,7 +45,8 @@ struct Token* mtTokenize(char* str, struct TokenTypeRules rules, size_t* tokenCo
     return tokens;
 }
 
-
+//This could probably be simplified with some kind of hashmap.
+//I'd ought to implement that one day.
 void mtTokenizerSetTokenType(struct Token* token, struct TokenTypeRules rules)
 {
     if ((token->size == 0) || (token->string == NULL)) 
@@ -93,6 +94,9 @@ void mtTokenizerSetTokenType(struct Token* token, struct TokenTypeRules rules)
             rules.multiplicationChar, 
             rules.divisionChar, 
             rules.assignChar,
+            rules.greaterThanChar,
+            rules.lesserThanChar,
+            rules.exclamationChar
         };
         enum TokenType operatorTypes[] = { // same order as above
             TokenType_OperatorAddition,
@@ -100,7 +104,11 @@ void mtTokenizerSetTokenType(struct Token* token, struct TokenTypeRules rules)
             TokenType_OperatorMultiplication,
             TokenType_OperatorDivision,
             TokenType_OperatorAssign,
+            TokenType_OperatorGreaterThan,
+            TokenType_OperatorLesserThan,
+            TokenType_ExclamationMark
         };
+
         int operatorIndex = mtWhichOf(character, &operators[0], mtArraySize(operators));
         if (operatorIndex != mtFail)
         {
@@ -119,6 +127,12 @@ void mtTokenizerSetTokenType(struct Token* token, struct TokenTypeRules rules)
         token->type = TokenType_EndKeyword;
         return;
     }
+    if (mtTokenCmp(*token, mtCreateStringToken(rules.ifKeyword)) == 0)
+    {
+        token->type = TokenType_IfKeyword;
+        return;
+    }
+
 
     bool isIntegerLiteral = mtOnlyOfN(token->string, token->size, (char*)&rules.numbers[0], 10);
     if (isIntegerLiteral)
@@ -138,7 +152,6 @@ void mtTokenizerSetTokenType(struct Token* token, struct TokenTypeRules rules)
         token->type = TokenType_DecimalLiteral;
         return;
     }
-
 
     token->type = TokenType_Identifier;
 }
@@ -172,20 +185,15 @@ if (token->size == 1) {                 \
 }                                       \
 mtTokenizerStateAdvance(state, token);   
 
-bool checkSingleChar(struct SeparatorChars separators)
-{
-
-}
-
-void mtTokenizerFindToken(struct TokenizerState* state, struct SeparatorChars separators)
+void mtTokenizerFindToken(struct TokenizerState* state, char* separators, size_t separatorCount)
 {
 
     struct Token* token = &state->tokens[state->currentToken];
     token->string = state->position;
 
     if (mtAnyOfN(&state->position[0], 1, 
-                 separators.singleCharSeparators, 
-                 separators.singleCharSeparatorCount))
+                 separators, 
+                 separatorCount))
     {
         token->size = 1;
         advance(state, token);
@@ -197,8 +205,8 @@ void mtTokenizerFindToken(struct TokenizerState* state, struct SeparatorChars se
     {
         // check the character after this one
         if (mtAnyOfN(&state->position[i+1], 1, 
-                     separators.singleCharSeparators, 
-                     separators.singleCharSeparatorCount))
+                     separators, 
+                     separatorCount))
         {
             // if it is a separator, stop now so that we don't include it.
             // add 1 because i is an index and not a count.

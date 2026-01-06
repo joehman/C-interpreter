@@ -1,6 +1,8 @@
 
 #include "internal/mtParser.h"
 #include "internal/mtAST.h"
+#include "internal/mtToken.h"
+#include <stdlib.h>
 
 // ___________ Helper functions ______________
 
@@ -25,18 +27,23 @@ void unexpectedTokenError(struct mtParserState state)
 {
     parserError(state, "Unexpected token");
 }
+
 /*
-*   block       = statments | expressions | function_def
+*   block       = statments | expressions | function_def | if
 *   statement   = identifier {assign} expression 
 *   expression  = {add | sub} term {add | sub} term 
-*   term        = factor  {mul | div} factor | factor {pow} exponent  
+*   term        = factor  {mul | div} factor  
 *   factor      = number | identifier | "lparen" expression "rparen" | function_call
 *
 *   function_def    = "func" identifier "lparen" [params] "rparen" block "end"
 *   function_call   = identifier "lparen" [arguments] "rparen"
+*   
+*   if  = "if" {conditional} block "end"
 *
-*   params      =  ("comma", identifier) // () = list, comma separates the identifiers
+*   params      = ("comma", identifier) // () = list, comma separates the identifiers
 *   arguments   = ("comma", expression) // "comma" separates the expressions 
+*   conditional = true | false | expression {comparison} expression 
+*   comparison  = {greaterThan} | {lesserThan} | {greaterThanOrEqual} | {lesserThanOrEqual} | {isEqual} | {isNotEqual}
 */
 
 struct ASTNode* parseFactor(struct mtParserState* state)
@@ -342,6 +349,118 @@ struct ASTNode* parseArguments(struct mtParserState* state)
     return arguments;
 }
 
+//this could probably be less repetetive.
+enum NodeType parseConditionalOperator(struct mtParserState* state)
+{
+    enum NodeType type = NodeType_None;
+
+    if (mtParserCheck(state, TokenType_OperatorGreaterThan))
+    {
+        mtParserAdvance(state);
+        
+        if (mtParserCheck(state, TokenType_OperatorAssign))
+        {
+            type = NodeType_GreaterThanOrEqual;
+            mtParserAdvance(state); // advance past the operator
+            return type;
+        }
+        type = NodeType_GreaterThan;
+    }
+
+    if (mtParserCheck(state, TokenType_OperatorLesserThan))
+    {
+        mtParserAdvance(state);
+        if (mtParserCheck(state, TokenType_OperatorAssign))
+        {
+            type = NodeType_LesserThanOrEqual;
+            mtParserAdvance(state); // advance past the operator
+            return type;
+        }
+
+        type = NodeType_LesserThan;
+    }
+
+    if (mtParserCheck(state, TokenType_OperatorAssign))
+    {
+        mtParserAdvance(state);
+        if (mtParserCheck(state, TokenType_OperatorAssign))
+        {
+            type = NodeType_IsEqual;
+            mtParserAdvance(state); // advance past the operator
+            return type;
+        }
+    }
+
+    if (mtParserCheck(state, TokenType_ExclamationMark))
+    {
+        mtParserAdvance(state);
+        if (mtParserCheck(state, TokenType_OperatorAssign))
+        {
+            type = NodeType_IsNotEqual;
+            mtParserAdvance(state); // advance past the operator
+            return type;
+        }
+    }
+
+
+    return type;
+} 
+
+// things that can be evaluated as true or false
+struct ASTNode* parseCondition(struct mtParserState* state)
+{
+    size_t stateStart = state->currentToken;
+
+    struct ASTNode* left = parseExpression(state);
+    
+    if (left == NULL)
+        return NULL;
+
+    enum NodeType type = parseConditionalOperator(state);
+
+    if (type == NodeType_None)
+    {
+        mtASTFree(left);
+        state->currentToken = stateStart; // reset the state
+        return NULL;
+    }
+    
+    struct ASTNode* right = parseExpression(state);
+    if (right == NULL)
+        return NULL;
+
+    struct ASTNode* node = mtASTCreateNode();
+    node->type = type;
+    mtASTAddChildNode(node, left);
+    mtASTAddChildNode(node, right);
+
+    return node;
+}
+
+struct ASTNode* parseIfStatement(struct mtParserState* state)
+{
+    while (mtParserCheck(state, TokenType_EndOfStatement))
+    {
+        mtParserAdvance(state);
+    }
+    if (!mtParserCheck(state, TokenType_IfKeyword))
+    {
+        return NULL;
+    }
+    mtParserAdvance(state); //advance past the if
+
+    struct ASTNode* ifNode = mtASTCreateNode();
+    ifNode->type = NodeType_IfStatement;
+
+    struct ASTNode* condition = parseCondition(state);
+    struct ASTNode* block = parseBlock(state);
+
+    mtASTAddChildNode(ifNode, condition);
+    mtASTAddChildNode(ifNode, block);
+
+    return ifNode;
+}
+
 struct ASTNode* parseFunctionCall(struct mtParserState* state)
 {
     size_t startToken = state->currentToken;
@@ -382,7 +501,6 @@ struct ASTNode* parseFunctionCall(struct mtParserState* state)
 
 struct ASTNode* parseBlock(struct mtParserState* state)
 {
-
     struct ASTNode* block = mtASTCreateNode();
     block->type = NodeType_Block;
 
@@ -394,6 +512,12 @@ struct ASTNode* parseBlock(struct mtParserState* state)
             mtASTAddChildNode(block, child); 
             continue;
         }
+        if ( (child = parseIfStatement(state)) )
+        {
+            mtASTAddChildNode(block, child);
+            continue;
+        }
+
         if ( (child = parseStatement(state)) )
         {
             mtASTAddChildNode(block, child); 
@@ -403,7 +527,6 @@ struct ASTNode* parseBlock(struct mtParserState* state)
         {
             continue;
         }
-
         return block;
     }
     return block;
@@ -421,9 +544,9 @@ struct ASTNode* mtASTParseTokens(struct Token* tokens, size_t tokenCount)
     if (tokenCount > 0)
     {
         rootNode = parseBlock(&state); 
-    }
-    if (rootNode == NULL)
+    } else {
         return NULL;
-
+    }
+    
     return rootNode;
 }

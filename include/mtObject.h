@@ -3,6 +3,7 @@
 #define mtVariable_h
 
 #include <stdlib.h> // for size_t
+#include <stdbool.h> // for bool
 
 struct Type {
     size_t size;
@@ -15,15 +16,19 @@ struct Type {
     void* (*mul)(void*, void*);
     void* (*div)(void*, void*);
 
+    bool (*isEqual)(void*, void*);
+    bool (*isGreater)(void*, void*);
+    bool (*isLesser)(void*, void*);
+
     char* (*str)(void*);
 };
 
 struct mtObject {
     struct Type type; 
-    void* value;
+    void* data;
 };
 
-struct mtObject* mtCreateVariable(struct Type type);
+struct mtObject* mtCreateObject(struct Type type);
 
 
 #endif

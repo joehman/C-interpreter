@@ -116,7 +116,7 @@ void mtPrintTokenString(struct Token token)
 
 void mtPrintTokenType(struct Token token)
 {
-     printf("%d", token.type);
+    printf("%d", token.type);
 }
 
 void mtPrintTokenTypes(struct Token* tokens, size_t tokenCount)
@@ -124,6 +124,7 @@ void mtPrintTokenTypes(struct Token* tokens, size_t tokenCount)
     for (size_t i = 0; i < tokenCount; i++)
     {
         mtPrintTokenType(tokens[i]);
+        printf(", ");
     }
     printf("\n");
 }

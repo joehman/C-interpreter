@@ -19,7 +19,11 @@ enum TokenType {
     TokenType_OperatorSubtraction,   
     TokenType_OperatorDivision,      
     TokenType_OperatorMultiplication,
+    TokenType_OperatorGreaterThan,
+    TokenType_OperatorLesserThan,
     
+    TokenType_ExclamationMark,
+
     TokenType_LeftParentheses,
     TokenType_RightParentheses,
     TokenType_LeftBracket,
@@ -27,7 +31,8 @@ enum TokenType {
     TokenType_Comma,
 
     TokenType_FunctionKeyword,
-    TokenType_EndKeyword
+    TokenType_EndKeyword,
+    TokenType_IfKeyword
 };
 
 struct Token {

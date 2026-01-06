@@ -10,7 +10,7 @@
 #include "mtInterpreter.h"
 #include "mtUtilities.h"
 
-#define mtVersion "0.3"
+#define mtVersion "0.4"
 
 const struct TokenTypeRules rules = {
     .additionChar           = '+',
@@ -18,9 +18,13 @@ const struct TokenTypeRules rules = {
     .multiplicationChar     = '*',
     .subtractionChar        = '-',
     .assignChar             = '=',
+    .greaterThanChar        = '>',
+    .lesserThanChar         = '<',
 
     .leftParentheses        = '(',
     .rightParentheses       = ')',
+
+    .exclamationChar        = '!',
 
     .commaChar              = ',',
 
@@ -30,7 +34,8 @@ const struct TokenTypeRules rules = {
 
     .numbers = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'},
     .functionKeyword = "func",
-    .endKeyword = "end"
+    .endKeyword = "end",
+    .ifKeyword = "if"
 };
 
 void mtExecute(char* string)
@@ -51,6 +56,9 @@ void mtExecute(char* string)
 
 int main(int argc, char* argv[])
 {
+
+    printf("Mint version " mtVersion "\n");
+
     if (argc != 2)
     {
         printf("Usage:\n\t Mint [file]\n");

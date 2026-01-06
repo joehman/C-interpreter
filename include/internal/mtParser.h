@@ -7,17 +7,21 @@
 
 
 /*
-*   block       = statments | expressions | function_def
+*   block       = statments | expressions | function_def | if
 *   statement   = identifier {assign} expression 
 *   expression  = {add | sub} term {add | sub} term 
-*   term        = factor  {mul | div} factor | factor {pow} exponent  
+*   term        = factor  {mul | div} factor  
 *   factor      = number | identifier | "lparen" expression "rparen" | function_call
 *
 *   function_def    = "func" identifier "lparen" [params] "rparen" block "end"
 *   function_call   = identifier "lparen" [arguments] "rparen"
+*   
+*   if  = "if" {conditional} block "end"
 *
-*   params      =  ("comma", identifier) // () = list, comma separates the identifiers
-*   arguments   = ("comma", expression) // "comma" separates the expressios
+*   params      = ("comma", identifier) // () = list, comma separates the identifiers
+*   arguments   = ("comma", expression) // "comma" separates the expressions 
+*   conditional = true | false | factor {comparison} factor 
+*   comparison  = {greaterThan} | {lesserThan} | {greaterThanOrEqual} | {lesserThanOrEqual} | {isEqual} | {isNotEqual}
 */
 
 

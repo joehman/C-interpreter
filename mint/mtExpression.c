@@ -32,11 +32,11 @@ void interpretStatement(struct ASTNode* node, struct mtScope* scope)
         char nodeStr[node->token.size];
         mtGetTokenString(leftNode->token, (char*)&nodeStr, mtArraySize(nodeStr));
 
-        left = mtCreateVariable(right->type);
+        left = mtCreateObject(right->type);
         mtHashMapPut(scope->variables, nodeStr, left);
     }
 
-    left->type.set(left->value, right->value);
+    left->type.set(left->data, right->data);
 }
 
 struct mtObject* intepretInteger(struct ASTNode* node)
@@ -44,13 +44,13 @@ struct mtObject* intepretInteger(struct ASTNode* node)
     if (node->token.type == TokenType_IntegerLiteral)
     {
         struct mtObject* out;
-        out = mtCreateVariable(mtNumberType);
+        out = mtCreateObject(mtNumberType);
 
         struct mtNumber num;
         num.type = INTEGER;
         num.integer = mtInterpretInteger(&node->token);
        
-        out->type.set(out->value, &num);
+        out->type.set(out->data, &num);
 	    return out;
     }
     return NULL;
@@ -60,13 +60,13 @@ struct mtObject* interpretDecimal(struct ASTNode* node)
     if (node->token.type == TokenType_DecimalLiteral)    
     {
         struct mtObject* out;
-        out = mtCreateVariable(mtNumberType);
+        out = mtCreateObject(mtNumberType);
 
         struct mtNumber num;
         num.type = DECIMAL;
         num.decimal = mtInterpretDecimal(&node->token);
 
-        out->type.set(out->value, &num);
+        out->type.set(out->data, &num);
 	    return out;
     }
     return NULL;
@@ -147,20 +147,20 @@ struct mtObject* interpretExpression(struct ASTNode* node, struct mtScope* scope
     }
 
     out = NULL;
-    out = mtCreateVariable(left->type);
+    out = mtCreateObject(left->type);
     switch (node->token.type)
     {
         case TokenType_OperatorAddition:
-            out->value = left->type.add(left->value, right->value); 
+            out->data = left->type.add(left->data, right->data); 
             break;
         case TokenType_OperatorSubtraction:
-            out->value = left->type.sub(left->value, right->value);
+            out->data = left->type.sub(left->data, right->data);
             break;
         case TokenType_OperatorMultiplication:
-            out->value = left->type.mul(left->value, right->value);
+            out->data = left->type.mul(left->data, right->data);
             break;
         case TokenType_OperatorDivision:
-            out->value = left->type.div(left->value, right->value);
+            out->data = left->type.div(left->data, right->data);
             break;
         default:
             break;
