@@ -28,6 +28,7 @@ void* numberMul(void* a, void* b);
 bool mtNumberIsEqual    (void* a, void* b);
 bool mtNumberIsGreater  (void* a, void* b);
 bool mtNumberIsLesser   (void* a, void* b);
+bool mtNumberIsTrue     (void* a);
 
 char* numberStr(void* a);
 
@@ -48,7 +49,8 @@ static const struct Type mtNumberType = {
 
     .isGreater = mtNumberIsGreater,
     .isLesser = mtNumberIsLesser,
-    .isEqual = mtNumberIsEqual
+    .isEqual = mtNumberIsEqual,
+    .isTrue = mtNumberIsTrue
 };
 
 #endif // MT_NUMBER_H

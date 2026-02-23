@@ -257,3 +257,19 @@ int mtInterpretInteger(struct Token* token)
     free(tokenString);
     return 0;
 }
+
+bool mtNumberIsTrue(void* a)
+{
+	struct mtNumber* numA = (struct mtNumber*)a;
+    
+    struct mtNumber one = {
+        .integer = 1,
+        .type = INTEGER
+    };
+
+    if (mtNumberIsEqual(numA, &one))
+    {
+        return true;
+    }
+    return false;
+}

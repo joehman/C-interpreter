@@ -33,6 +33,9 @@ void interpretBlock(struct ASTNode* node, struct mtScope* parent)
             case NodeType_IfStatement:
                 interpretIfStatement(currentNode, scope);
                 break;
+            case NodeType_WhileStatement:
+                interpretWhileStatement(currentNode, scope);
+                break;
             case NodeType_FunctionDefinition:
                 interpretFunctionDef(currentNode, scope);
                 break;

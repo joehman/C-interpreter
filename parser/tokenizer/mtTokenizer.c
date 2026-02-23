@@ -45,8 +45,6 @@ struct Token* mtTokenize(char* str, struct TokenTypeRules rules, size_t* tokenCo
     return tokens;
 }
 
-//This could probably be simplified with some kind of hashmap.
-//I'd ought to implement that one day.
 void mtTokenizerSetTokenType(struct Token* token, struct TokenTypeRules rules)
 {
     if ((token->size == 0) || (token->string == NULL)) 
@@ -54,89 +52,46 @@ void mtTokenizerSetTokenType(struct Token* token, struct TokenTypeRules rules)
         token->type = TokenType_Ignore;
         return;
     }
-    
+   
+#define CheckChar(ch, typ)  \
+if (firstchar == ch)        \
+{                           \
+    token->type = typ;      \
+    return;                 \
+} 
     if (token->size == 1)
     {
-        char character = token->string[0];
-
-        if (character == rules.endStatementChar)
-        {
-            token->type = TokenType_EndOfStatement;
-            return;
-        }
-
-        if (character == rules.endOfFileChar)
-        {
-            token->type = TokenType_NullTerminator;
-            return;
-        }
-      
-        if (character == rules.commaChar)
-        {
-            token->type = TokenType_Comma;
-            return;
-        }
-
-        if (character == rules.leftParentheses)
-        {
-            token->type = TokenType_LeftParentheses;
-            return;
-        } else if (character == rules.rightParentheses)
-        {
-            token->type = TokenType_RightParentheses;
-            return;
-        }
+        char firstchar = token->string[0];
         
-        //check for the operators.
-        char operators[] = {
-            rules.additionChar, 
-            rules.subtractionChar, 
-            rules.multiplicationChar, 
-            rules.divisionChar, 
-            rules.assignChar,
-            rules.greaterThanChar,
-            rules.lesserThanChar,
-            rules.exclamationChar
-        };
-        enum TokenType operatorTypes[] = { // same order as above
-            TokenType_OperatorAddition,
-            TokenType_OperatorSubtraction,
-            TokenType_OperatorMultiplication,
-            TokenType_OperatorDivision,
-            TokenType_OperatorAssign,
-            TokenType_OperatorGreaterThan,
-            TokenType_OperatorLesserThan,
-            TokenType_ExclamationMark
-        };
-
-        int operatorIndex = mtWhichOf(character, &operators[0], mtArraySize(operators));
-        if (operatorIndex != mtFail)
-        {
-            token->type = operatorTypes[operatorIndex];
-            return;
-        }
+        CheckChar(rules.endStatementChar,   TokenType_EndOfStatement)
+        CheckChar(rules.endOfFileChar,      TokenType_NullTerminator)
+        CheckChar(rules.commaChar,          TokenType_Comma)
+        CheckChar(rules.leftParentheses,    TokenType_LeftParentheses)
+        CheckChar(rules.rightParentheses,   TokenType_RightParentheses)
+        CheckChar(rules.endStatementChar,   TokenType_EndOfStatement)
+        
+        // operators
+        CheckChar(rules.additionChar,         TokenType_OperatorAddition      )
+        CheckChar(rules.subtractionChar,      TokenType_OperatorSubtraction   )
+        CheckChar(rules.multiplicationChar,   TokenType_OperatorMultiplication) 
+        CheckChar(rules.divisionChar,         TokenType_OperatorDivision      )
+        CheckChar(rules.assignChar,           TokenType_OperatorAssign        )
+        CheckChar(rules.greaterThanChar,      TokenType_OperatorGreaterThan   )
+        CheckChar(rules.lesserThanChar,       TokenType_OperatorLesserThan    )
+        CheckChar(rules.exclamationChar,      TokenType_ExclamationMark       )
     }
 
-    if (mtTokenCmp(*token, mtCreateStringToken(rules.functionKeyword)) == 0)
-    {
-        token->type = TokenType_FunctionKeyword;
-        return;
-    }
-    if (mtTokenCmp(*token, mtCreateStringToken(rules.endKeyword)) == 0)
-    {
-        token->type = TokenType_EndKeyword;
-        return;
-    }
-    if (mtTokenCmp(*token, mtCreateStringToken(rules.ifKeyword)) == 0)
-    {
-        token->type = TokenType_IfKeyword;
-        return;
-    }
-    if (mtTokenCmp(*token, mtCreateStringToken(rules.importKeyword)) == 0)
-    {
-        token->type = TokenType_ImportKeyword;
-        return;
-    }
+#define CheckString(str, typ) \
+if (mtTokenCmp(*token, mtCreateStringToken(str)) == 0)  \
+{                                                       \
+    token->type = typ;                                  \
+    return;                                             \
+}
+
+    CheckString(rules.functionKeyword,  TokenType_FunctionKeyword);
+    CheckString(rules.importKeyword,    TokenType_ImportKeyword);
+    CheckString(rules.ifKeyword,        TokenType_IfKeyword);
+    CheckString(rules.whileKeyword,     TokenType_WhileKeyword);
 
     bool isIntegerLiteral = mtOnlyOfN(token->string, token->size, (char*)&rules.numbers[0], 10);
     if (isIntegerLiteral)
@@ -180,17 +135,15 @@ void mtTokenizerStateAdvance(struct TokenizerState* state, struct Token* token)
     state->remainingLength -= token->size;
     state->currentToken++;
 }
-
+void mtTokenizerFindToken(struct TokenizerState* state, char* separators, size_t separatorCount)
+{
 #define advance(state, token)           \
 if (token->size == 1) {                 \
     if (token->string[0] == '\n') {     \
         state->line++;                  \
-    }                                       \
+    }                                   \
 }                                       \
 mtTokenizerStateAdvance(state, token);   
-
-void mtTokenizerFindToken(struct TokenizerState* state, char* separators, size_t separatorCount)
-{
 
     struct Token* token = &state->tokens[state->currentToken];
     token->string = state->position;

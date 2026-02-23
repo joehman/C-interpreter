@@ -25,6 +25,25 @@ void interpretIfStatement(struct ASTNode* node, struct mtScope* scope)
     }
 }
 
+void interpretWhileStatement(struct ASTNode* node, struct mtScope* scope)
+{
+    bool conditional = false;
+
+    int result = interpretConditional(node->children[0], scope, &conditional);
+
+    if (result != mtSuccess)
+    {
+        interpreterError(node, "Could not interpret conditional!");
+        return;
+    }
+    
+    while (conditional)
+    {
+        interpretConditional(node->children[0], scope, &conditional);
+        interpretBlock(node->children[1], scope);
+    }
+}
+
 int interpretConditional(struct ASTNode* node, struct mtScope* scope, bool* result)
 {
     if (node->childCount < 2)
@@ -35,9 +54,16 @@ int interpretConditional(struct ASTNode* node, struct mtScope* scope, bool* resu
     struct mtObject* left = interpretExpression(node->children[0], scope);
     struct mtObject* right = interpretExpression(node->children[1], scope);
 
-    if (!left || !right)
+    if (!left)
     {
         return mtWasNotConditional;
+    }
+
+    if (!right)
+    {
+        if (left->type.isTrue)
+            *result = left->type.isTrue(left->data); 
+        return mtSuccess;
     }
 
     switch(node->type) 

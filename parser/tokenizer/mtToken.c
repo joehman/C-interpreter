@@ -76,6 +76,26 @@ void mtFilterTokens(struct Token* unFilteredTokens, size_t unFilteredTokenCount,
     memcpy(unFilteredTokens, newTokenList, unFilteredTokenCount * sizeof(struct Token));
 }
 
+void mtPrintTokens(struct Token* tokens, size_t tokenCount)
+{
+    for (size_t i = 0; i < tokenCount; i++)
+    {
+        mtPrintToken(tokens[i]);
+        printf(",\t");
+        if (tokens[i].string[0] == '\n')
+            printf("\n");
+    }
+}
+
+void mtPrintToken(struct Token token)
+{
+    printf("[");
+    mtPrintTokenString(token);
+    printf(" ");
+    mtPrintTokenType(token);
+    printf("]");
+}
+
 void mtPrintTokenStrings(struct Token* token, size_t tokenCount)
 {
     for (size_t i = 0; i < tokenCount; i++)
@@ -92,7 +112,7 @@ void mtPrintTokenStrings(struct Token* token, size_t tokenCount)
 }
 void mtPrintTokenString(struct Token token)
 {
-    printf("'");
+    printf("\"");
     for (size_t i = 0; i < token.size; i++) 
     {
         if (token.size <= 0)
@@ -111,7 +131,7 @@ void mtPrintTokenString(struct Token token)
 
         printf("%c", token.string[i]);
     }
-    printf("'");
+    printf("\"");
 }
 
 void mtPrintTokenType(struct Token token)

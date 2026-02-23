@@ -25,6 +25,7 @@ enum NodeType {
     NodeType_IsNotEqual,
 
     NodeType_IfStatement,
+    NodeType_WhileStatement,
     NodeType_FunctionDefinition,
     NodeType_FunctionCall,
     NodeType_ParameterList, // not an actual list

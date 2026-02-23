@@ -9,6 +9,7 @@
 
 
 void interpretIfStatement(struct ASTNode* node, struct mtScope* scope);
+void interpretWhileStatement(struct ASTNode* node, struct mtScope* scope);
 
 int interpretConditional(struct ASTNode* node, struct mtScope* scope, bool* result);
 

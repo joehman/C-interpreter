@@ -16,6 +16,7 @@ struct Type {
     void* (*mul)(void*, void*);
     void* (*div)(void*, void*);
 
+    bool (*isTrue)(void*);
     bool (*isEqual)(void*, void*);
     bool (*isGreater)(void*, void*);
     bool (*isLesser)(void*, void*);

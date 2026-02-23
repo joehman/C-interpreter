@@ -29,7 +29,7 @@ void unexpectedTokenError(struct mtParserState state)
 }
 
 /*
-*   block       = statments | expressions | function_def | if | import
+*   block       = statments | expressions | function_def | if | import | while
 *   statement   = identifier {assign} expression 
 *   expression  = {add | sub} term {add | sub} term 
 *   term        = factor  {mul | div} factor  
@@ -39,6 +39,7 @@ void unexpectedTokenError(struct mtParserState state)
 *   function_call   = identifier "lparen" [arguments] "rparen"
 *   
 *   if  = "if" {conditional} block "end"
+*   while = "while" {conditional} block "end"
 *
 *   params      = ("comma", identifier) // () = list, comma separates the identifiers
 *   arguments   = ("comma", expression) // "comma" separates the expressions 
@@ -399,7 +400,6 @@ enum NodeType parseConditionalOperator(struct mtParserState* state)
         }
     }
 
-
     return type;
 } 
 
@@ -417,9 +417,7 @@ struct ASTNode* parseCondition(struct mtParserState* state)
 
     if (type == NodeType_None)
     {
-        mtASTFree(left);
-        state->currentToken = stateStart; // reset the state
-        return NULL;
+        return left;
     }
     
     struct ASTNode* right = parseExpression(state);
@@ -434,20 +432,24 @@ struct ASTNode* parseCondition(struct mtParserState* state)
     return node;
 }
 
-struct ASTNode* parseIfStatement(struct mtParserState* state)
+struct ASTNode* parseIfAndWhileStatement(struct mtParserState* state)
 {
     while (mtParserCheck(state, TokenType_EndOfStatement))
     {
         mtParserAdvance(state);
     }
-    if (!mtParserCheck(state, TokenType_IfKeyword))
+    bool isIf = false;
+    if (!(mtParserCheck(state, TokenType_IfKeyword) || mtParserCheck(state, TokenType_WhileKeyword)))
     {
+        if (mtParserCheck(state, TokenType_IfKeyword)) isIf = true;
         return NULL;
     }
+    struct Token conditionkeyword = mtParserGetToken(state);
+
     mtParserAdvance(state); //advance past the if
 
-    struct ASTNode* ifNode = mtASTCreateNode();
-    ifNode->type = NodeType_IfStatement;
+    struct ASTNode* ifNode = mtASTTokenCreateNode(conditionkeyword);
+    ifNode->type = isIf ? NodeType_IfStatement : NodeType_WhileStatement;
 
     struct ASTNode* condition = parseCondition(state);
     struct ASTNode* block = parseBlock(state);
@@ -558,7 +560,7 @@ struct ASTNode* parseBlock(struct mtParserState* state)
             mtASTAddChildNode(block, child); 
             continue;
         }
-        if ( (child = parseIfStatement(state)) )
+        if ( (child = parseIfAndWhileStatement(state)) )
         {
             mtASTAddChildNode(block, child);
             continue;

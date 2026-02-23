@@ -33,7 +33,8 @@ enum TokenType {
     TokenType_FunctionKeyword,
     TokenType_EndKeyword,
     TokenType_IfKeyword,
-    TokenType_ImportKeyword
+    TokenType_ImportKeyword,
+    TokenType_WhileKeyword
 };
 
 struct Token {
@@ -68,6 +69,16 @@ void mtCreateTokens(struct Token* tokens, size_t tokenCount);
 // @param filterTokens an array of tokens, created with mtCreateTokens(), of filterTokenCount length.
 // @param filterTokensCount the number of elements in the filterTokens array.
 void mtFilterTokens(struct Token* unFilteredTokens, size_t unFilteredTokenCount, const struct Token* filterTokens, size_t filterTokenCount);
+
+// @brief Prints the string and type of a token
+// 
+// @param token a token created with mtCreateToken()
+void mtPrintTokens(struct Token* tokens, size_t tokenCount);
+
+// @brief Prints the string and type of a token
+// 
+// @param token a token created with mtCreateToken()
+void mtPrintToken(struct Token token);
 
 // @brief Prints the string of a token
 // 

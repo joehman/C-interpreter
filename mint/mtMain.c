@@ -13,6 +13,7 @@
 #define mtVersion "0.4"
 
 bool gPrintASTTree = false;
+bool gPrintTokens = false;
 
 const struct TokenTypeRules rules = {
     .additionChar           = '+',
@@ -38,7 +39,8 @@ const struct TokenTypeRules rules = {
     .functionKeyword = "func",
     .endKeyword = "end",
     .ifKeyword = "if",
-    .importKeyword = "import"
+    .importKeyword = "import",
+    .whileKeyword = "while"
 };
 
 void mtExecute(char* string)
@@ -48,6 +50,8 @@ void mtExecute(char* string)
 
     struct ASTNode* rootNode = mtASTParseTokens(tokens, tokenCount);
     
+    if (gPrintTokens)
+       mtPrintTokens(tokens, tokenCount); 
     if (gPrintASTTree)
         mtPrintASTTree(rootNode);
     
@@ -56,6 +60,7 @@ void mtExecute(char* string)
         mtInterpret(rootNode);
         mtASTFree(rootNode);
     }
+
     free(tokens);
 }
 
@@ -73,6 +78,8 @@ int main(int argc, char* argv[])
     {
         if (strcmp(argv[i], "--printAST") == 0) 
             gPrintASTTree = true;
+        if (strcmp(argv[i], "--printTokens") == 0)
+            gPrintTokens = true;
     }
 
     int result;
